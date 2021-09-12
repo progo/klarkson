@@ -1,0 +1,620 @@
+package klarksonmainframe
+
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.event.*
+import java.io.File
+import javax.imageio.IIOException
+import javax.imageio.ImageIO
+import javax.swing.JPanel
+import javax.swing.Timer
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
+import kotlin.math.*
+import kotlin.random.Random
+import kotlin.system.measureNanoTime
+
+private const val ALBUM_COVER_SIZE = 200
+private val ZOOM_SCALE_FACTORS = doubleArrayOf(0.05, 0.10, 0.20, 0.50, 1.00, 1.50, 2.00)
+private enum class ZoomDirection (val value: Int) {
+    IN (1),
+    OUT (-1)
+}
+
+/**
+ * Track selected albums and offers notifications to listeners.
+ */
+class AlbumSelection : Iterable<AlbumCover> {
+    private val selection : MutableSet<AlbumCover> = HashSet()
+    private val listeners : MutableList<(AlbumSelection) -> Unit> = ArrayList()
+
+    /**
+     * Interface things
+     */
+
+    fun size() = selection.size
+    operator fun contains(c: AlbumCover) = c in selection
+    override operator fun iterator() : Iterator<AlbumCover> = selection.iterator()
+
+    /**
+     * These operations trigger listener events
+     */
+    fun replace(albs: Collection<AlbumCover>) {
+        selection.clear()
+        selection.addAll(albs)
+        listenerCallback()
+    }
+
+    fun clear() {
+        selection.clear()
+        listenerCallback()
+    }
+
+    fun add(c: AlbumCover) {
+        selection.add(c)
+        listenerCallback()
+    }
+
+    /**
+     * Poor listener mechanism. Swing and Java is full of examples of simple mechanims.
+     */
+    fun registerListener(func : (AlbumSelection) -> Unit) {
+        listeners.add(func)
+    }
+
+    private fun listenerCallback() {
+        for (listener in listeners) {
+            listener(this)
+        }
+    }
+}
+
+/**
+ * AlbumOrganizer takes care of the cover positions and shit.
+ */
+class AlbumOrganizer {
+    // TreeSet is a strong idea here
+    private val albums : ArrayList<AlbumCover> = ArrayList()
+
+    fun put(a: AlbumCover) {
+        albums.add(a)
+    }
+
+    fun size() = albums.size
+
+    /**
+     *  Get the topmost cover around a virtual point, or null.
+     */
+    fun getByLocation(x: Int, y: Int): AlbumCover? {
+        fun pred(a: AlbumCover) : Boolean {
+            return ((a.x - ALBUM_COVER_SIZE/2 < x) and (x < a.x + ALBUM_COVER_SIZE/2)
+                    and (a.y - ALBUM_COVER_SIZE/2 < y) and (y < a.y + ALBUM_COVER_SIZE/2))
+        }
+        return albums.lastOrNull(::pred)
+    }
+
+    fun getByLocation(p: Point) = getByLocation(p.x, p.y)
+
+    /**
+     * Points a and b form a rectangular region: find all albums within the region.
+     */
+    fun allAlbumsWithinRegion(a: Point, b: Point) : List<AlbumCover> {
+        val (x1, y1) = a
+        val (x2, y2) = b
+        fun p(a: AlbumCover) : Boolean = (x1 > a.x) && (a.x > x2) && (y1 > a.y) && (a.y > y2)
+        return albums.filter(::p)
+    }
+
+    /**
+     * Seq of everything
+     */
+    operator fun iterator() : Iterator<AlbumCover> {
+        return albums.iterator()
+    }
+
+    /**
+     *  Sort and order the albums
+     */
+    fun reorganize() {
+        albums.sort()
+    }
+}
+
+private fun createAlbumCovers(): Sequence<AlbumCover>  {
+    fun randomColor(): Color {
+        return Color(
+            Random.nextInt(255),
+            Random.nextInt(255),
+            Random.nextInt(255),
+        )
+    }
+
+    fun loadCover(f: File) : AlbumCover {
+        return AlbumCover(
+            Album("artist${Random.nextInt()}", "album${Random.nextInt()}", Random.nextInt(1900, 2030)),
+            (Random.nextInt() % 300 ) * 15,
+            (Random.nextInt() % 300 ) * 15,
+            try { ImageIO.read(f) } catch (ie: IIOException) { null },
+            randomColor()
+        )
+    }
+    return File("/home/progo/koodi/mpyd/data/covers/").walk().shuffled().take(100).map(::loadCover)
+}
+
+class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
+    private val albums = AlbumOrganizer()
+
+    init {
+        background = Color(225, 205, 40)
+
+        for (a in createAlbumCovers()) {
+            albums.put(a)
+        }
+        albums.reorganize()
+    }
+
+    private val coversOnTheMove: MutableSet<AlbumCover> = HashSet()
+
+    private var viewportX = 0
+    private var viewportY = 0
+    private var lastMouseX = -1
+    private var lastMouseY = -1
+    private var viewportPan = false
+    private var viewportScaleFactor = 1.00
+    private var viewportScaleIndex : Int = ZOOM_SCALE_FACTORS.indexOfFirst { it == viewportScaleFactor }
+    private var mouseMoveTimer : Timer = Timer(1000) { }
+
+    private var selectionEndPoint : Point? = null
+    private var selectionStartPoint : Point? = null
+
+    private fun paintBackground(g: Graphics) {
+        val w = width
+        val h = height
+        val spacing = 10
+        var x = 0
+
+//        val color = background.brighter()
+//        val color2 = background.darker()
+//
+//        for (i in (1..10)) {
+//            g.color = if (Random.nextBoolean()) { color } else { color2 }
+//            g.fillOval(
+//                Random.nextInt(0, width),
+//                Random.nextInt(0, height),
+//                Random.nextInt(50, 250),
+//                Random.nextInt(50, 250)
+//            )
+//        }
+
+//        g.color = Color.darkGray.brighter().brighter()
+//        while (x < width * 2.5) {
+//            g.drawLine(0, x, x, 0)
+//            x += spacing
+//        }
+    }
+
+    /**
+     * Physical on-screen coordinates into virtual ones.
+     */
+    private fun physical2virtual(x: Int, y: Int): Point {
+        val xv = viewportX - (x - width/2) / viewportScaleFactor
+        val yv = viewportY - (y - height/2) / viewportScaleFactor
+        return Point(xv, yv)
+    }
+    private fun physical2virtual(p: Point): Point = physical2virtual(p.x, p.y)
+
+    /**
+     * Virtual on-screen coordinates into physical ones.
+     */
+    private fun virtual2physical(x: Int, y: Int): Point {
+        val xp = (viewportX - x) * viewportScaleFactor + (width / 2)
+        val yp = (viewportY - y) * viewportScaleFactor + (height / 2)
+        return Point(xp, yp)
+    }
+    private fun virtual2physical(p: Point): Point = virtual2physical(p.x, p.y)
+
+    private fun paintAlbums(g: Graphics2D) {
+        // looks good -- 5000 blank albums or 850 pictured albums poses no sweat
+
+        for (albumcover in albums) {
+            val coverside = (viewportScaleFactor * ALBUM_COVER_SIZE).toInt()
+            val (xp, yp) = virtual2physical(albumcover.x, albumcover.y) - (coverside / 2)
+
+            if (albumcover.cover != null) {
+                g.drawImage(albumcover.cover, xp, yp, coverside, coverside, null)
+            }
+            else {
+                g.color = albumcover.color
+                g.fill3DRect(xp, yp, coverside, coverside, true)
+            }
+
+            if (albumcover in albumSelection) {
+                g.color = Color.BLACK
+                g.stroke = BasicStroke(3F)
+                g.drawRect(xp, yp, coverside, coverside)
+            }
+        }
+    }
+
+    private fun lassoRectangle(a: Point, b: Point) : Pair<Point, Point> {
+        val x1 = min(a.x, b.x)
+        val y1 = min(a.y, b.y)
+        val x2 = max(a.x, b.x)
+        val y2 = max(a.y, b.y)
+        return Pair(Point(x1, y1), Point(x2, y2))
+    }
+
+    private fun paintLasso(g: Graphics2D) {
+        val (a, b) = lassoRectangle(
+            selectionStartPoint ?: return,
+            selectionEndPoint ?: return
+        )
+        val width = b.x - a.x
+        val height = b.y - a.y
+
+        g.color = Color.BLUE
+        g.stroke = BasicStroke(2F)
+        g.drawRoundRect(a.x, a.y, width, height, 10, 10)
+    }
+
+    private fun paintCrosshair(g: Graphics2D) {
+        val cx_length = 10
+        g.color = Color.BLACK
+        g.stroke = BasicStroke(1F)
+        g.drawLine(width / 2, height / 2 - cx_length, width / 2, height / 2 + cx_length)
+        g.drawLine(width / 2 - cx_length, height / 2, width / 2 + cx_length, height / 2)
+    }
+
+    override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        val g2 = g as Graphics2D
+
+        val paint_time_ms = 1e-6 * measureNanoTime {
+            paintBackground(g2)
+            paintAlbums(g2)
+            // paintCrosshair(g2)
+            paintLasso(g2)
+        }
+
+        g2.color = Color.LIGHT_GRAY
+        g2.fillRect(0, 0, width, 14)
+        g2.color = Color.BLACK
+        g2.drawString( "Zoom level ${(viewportScaleFactor * 100).toInt()}%. " +
+                // "Drag mouse1 to move covers. " +
+                // "Drag mouse2 to pan. " +
+                "Viewport: ($viewportX, $viewportY). " +
+                "Selected covers: ${albumSelection.size()} " +
+                "Frame took ${"%.2f".format(paint_time_ms)}ms", 0, 10)
+    }
+
+    override fun keyPressed(ke: KeyEvent) {
+        val shift = if (ke.isShiftDown) { 200 } else { 100 }
+        when (ke.keyCode) {
+//            KeyEvent.VK_LEFT -> viewport_x -= shift
+//            KeyEvent.VK_RIGHT -> viewport_x += shift
+//            KeyEvent.VK_UP -> viewport_y -= shift
+//            KeyEvent.VK_DOWN -> viewport_y += shift
+//            KeyEvent.VK_UP -> zoomIn()
+//            KeyEvent.VK_DOWN -> zoomOut()
+            KeyEvent.VK_ENTER -> centerAroundPoint(0, 0)
+            KeyEvent.VK_SPACE -> bringSelectedCoversTogether()
+        }
+
+        repaint()
+    }
+
+    private fun zoomIn(x: Int, y: Int) {
+        val (vx, vy) = physical2virtual(x, y)
+        adjustViewportScale(ZoomDirection.IN)
+        centerAroundPoint(vx, vy)
+    }
+
+    private fun zoomOut(x: Int, y: Int) {
+        adjustViewportScale(ZoomDirection.OUT)
+    }
+
+    /** Adjust scaling and recenter around x, y.
+     * Return true if scale was adjusted, false if nothing happened.  */
+    private fun adjustViewportScale(direction: ZoomDirection) {
+        // print("[$viewportScaleIndex] Zooming $direction, ")
+
+        val newIndex = (viewportScaleIndex + direction.value).coerceIn(0, ZOOM_SCALE_FACTORS.size - 1)
+        val newScale = ZOOM_SCALE_FACTORS[newIndex]
+        // println("from $viewportScaleFactor to $newScale.")
+
+        val dS = newScale - viewportScaleFactor
+        if (abs(dS) == 0.0) {
+            return
+        }
+
+        var count = 0
+        val steps = 10
+
+        Timer(10) { ae: ActionEvent ->
+            viewportScaleFactor += dS / steps
+
+            count += 1
+            if (count >= steps) {
+                viewportScaleFactor = newScale
+                viewportScaleIndex = newIndex
+                val t = ae.source as Timer
+                t.stop()
+            }
+
+            repaint()
+        } .apply {
+            start()
+        }
+    }
+
+    override fun keyReleased(ke: KeyEvent) { }
+    override fun keyTyped(ke: KeyEvent) { }
+
+    /*
+     *  Three mouse move operations that mark the most significant operations in the GUI
+     */
+    override fun mousePressed(me: MouseEvent) {
+        if (me.isShiftDown) {
+            when (me.button) {
+                MouseEvent.BUTTON1 -> beginLasso(me)
+            }
+        }
+        else {
+            when (me.button) {
+                MouseEvent.BUTTON1 -> beginMoveCover(me)
+                MouseEvent.BUTTON3 -> beginPan(me)
+            }
+        }
+    }
+
+    override fun mouseReleased(me: MouseEvent) {
+        endPan(me)
+        endMoveCover()
+        endLasso()
+    }
+
+    override fun mouseDragged(me: MouseEvent) {
+        duringPan(me)
+        duringMoveCover(me)
+        if (me.isShiftDown) {
+            duringLasso(me)
+        }
+    }
+
+    /**
+     * Making selections : lasso
+     */
+    private fun beginLasso(me: MouseEvent) {
+        selectionStartPoint = Point(me.x, me.y)
+        selectionEndPoint = Point(me.x, me.y)
+    }
+
+    private fun duringLasso(me: MouseEvent) {
+        selectionEndPoint = Point(me.x, me.y)
+
+        val (a, b) = lassoRectangle(
+            selectionStartPoint ?: return,
+            selectionEndPoint ?: return
+        )
+
+        val albs = albums.allAlbumsWithinRegion(physical2virtual(a), physical2virtual(b))
+        albumSelection.replace(albs)
+    }
+
+    private fun endLasso() {
+        clearLasso()
+    }
+
+    private fun clearLasso() {
+        selectionStartPoint = null
+        selectionEndPoint = null
+        repaint()
+    }
+
+    private fun clearSelection() {
+        albumSelection.clear()
+    }
+
+    /**
+     * When there are two or more albums selected, bring them together around
+     * the center point. Don't worry about existing albums around the area: keep
+     * all selected so that user takes it from there.
+     */
+    private fun bringSelectedCoversTogether() {
+        if (albumSelection.size() < 2)  return
+
+        val rows : Int = sqrt(albumSelection.size().toDouble()).roundToInt()
+        val cols : Int = albumSelection.size() / rows
+
+        var x = 0
+        var y = -1
+
+        for (album in albumSelection) {
+            album.x = viewportX + x * (ALBUM_COVER_SIZE + Random.nextInt(2, 10))
+            album.y = viewportY + y * (ALBUM_COVER_SIZE + Random.nextInt(2, 10))
+
+            x += 1
+            if (x >= cols) {
+                x = 0
+                y += 1
+            }
+        }
+
+        albums.reorganize()
+        repaint()
+    }
+
+    /**
+     * Moving of covers
+     */
+    private fun beginMoveCover(me: MouseEvent) {
+        val (x, y) = physical2virtual(me.x, me.y)
+        val alb = albums.getByLocation(x, y) ?: return;
+
+        coversOnTheMove.clear()
+        if (alb in albumSelection) {
+            coversOnTheMove.addAll(albumSelection)
+        } else {
+            coversOnTheMove.add(alb)
+        }
+
+        lastMouseY = me.y
+        lastMouseX = me.x
+    }
+
+    /**
+     * Move ongoing
+     */
+    private fun duringMoveCover(me: MouseEvent) {
+        val pdx = lastMouseX - me.x
+        val pdy = lastMouseY - me.y
+
+        for (cotm in coversOnTheMove) {
+            val (x, y) = virtual2physical(cotm.x, cotm.y)
+            var (xx, yy) = physical2virtual(x - pdx, y - pdy)
+            val vdx = xx - cotm.x
+            val vdy = yy - cotm.y
+
+            // Manually correct rounding errors when zoomed in
+            if (abs(pdx) > 0 && abs(vdx) == 0) {
+                xx += sign(pdx.toDouble()).toInt()
+            }
+            if (abs(pdy) > 0 && abs(vdy) == 0) {
+                yy += sign(pdy.toDouble()).toInt()
+            }
+
+            cotm.x = xx
+            cotm.y = yy
+        }
+
+        lastMouseY = me.y
+        lastMouseX = me.x
+        albums.reorganize()
+        repaint()
+    }
+
+    /**
+     * Move is finished.
+     */
+    private fun endMoveCover() {
+        coversOnTheMove.clear()
+        albums.reorganize()
+        repaint()
+    }
+
+    /**
+     * begin pan operation
+     */
+    private fun beginPan(me: MouseEvent) {
+        viewportPan = true
+        lastMouseY = me.y
+        lastMouseX = me.x
+    }
+
+    /**
+     * And here we end it.
+     */
+    private fun endPan(me: MouseEvent) {
+        viewportPan = false
+    }
+
+    private fun duringPan(me: MouseEvent) {
+        if (! viewportPan) {
+            return
+        }
+
+        val scale = 2 / viewportScaleFactor
+
+        val dx = lastMouseX - me.x
+        val dy = lastMouseY - me.y
+
+        viewportX += (dx * scale).toInt()
+        viewportY += (dy * scale).toInt()
+
+        lastMouseX = me.x
+        lastMouseY = me.y
+
+        repaint()
+    }
+
+    override fun mouseClicked(me: MouseEvent) {
+        val (x, y) = physical2virtual(me.x, me.y)
+
+        if (me.clickCount == 2) {
+            centerAroundPoint(x, y)
+            return
+        }
+
+        val alb = albums.getByLocation(x, y)
+        if (alb == null) {
+            clearSelection()
+            return
+        }
+        if (me.isControlDown) {
+            albumSelection.add(alb)
+        }
+        else {
+            albumSelection.replace(setOf(alb))
+        }
+    }
+
+    /**
+     * Center the playground around this VIRTUAL point.
+     */
+    private fun centerAroundPoint(x: Int, y: Int, animate: Boolean = true) {
+        if (! animate) {
+            viewportX = x
+            viewportY = y
+            return
+        }
+
+        val dx = x - viewportX
+        val dy = y - viewportY
+
+        val animationDurationMs = 200
+        val steps = 20
+        var count = 0
+
+        Timer(animationDurationMs / steps) { ae: ActionEvent ->
+            viewportX += (dx / steps)
+            viewportY += (dy / steps)
+
+            count += 1
+            if (count >= steps) {
+                // Make sure we hit the exact target when we finish.
+                viewportX = x
+                viewportY = y
+                val t = ae.source as Timer
+                t.stop()
+            }
+
+            repaint()
+        }.apply {
+            start()
+        }
+    }
+
+    override fun mouseMoved(me: MouseEvent) {
+        if (!mouseMoveTimer.isRunning) {
+            val (x, y) = physical2virtual(me.x, me.y)
+            mouseMoveTimer = Timer(25) {
+                //println(Point(x, y).toString() + " -> " + lookup_cover_at_coords(x, y))
+            }
+            mouseMoveTimer.initialDelay = 25
+            mouseMoveTimer.isRepeats = false
+            mouseMoveTimer.restart()
+        }
+    }
+
+    override fun mouseEntered(p0: MouseEvent?) { }
+    override fun mouseExited(p0: MouseEvent?) { }
+    override fun mouseWheelMoved(mwe: MouseWheelEvent) {
+        if (mwe.wheelRotation < 0) {
+            zoomIn(mwe.x, mwe.y)
+        } else {
+            zoomOut(mwe.x, mwe.y)
+        }
+    }
+}
