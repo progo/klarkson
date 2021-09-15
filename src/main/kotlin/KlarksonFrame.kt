@@ -7,28 +7,10 @@ import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import java.awt.image.BufferedImage
 import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneDivider
 import javax.swing.plaf.basic.BasicSplitPaneUI
 import kotlin.system.exitProcess
-
-data class Album(val artist: String, val album: String, val year: Int)
-
-data class AlbumCover(val album: Album, var x: Int, var y: Int, val cover: BufferedImage?, val color: Color) : Comparable<AlbumCover> {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other?.javaClass != javaClass) return false
-        other as AlbumCover
-        return (album === other.album)
-    }
-
-    override fun hashCode(): Int {
-        return album.hashCode()
-    }
-
-    override operator fun compareTo(other: AlbumCover) : Int = compareXY(x, y, other.x, other.y)
-}
 
 class KlarksonFrame : JFrame() {
     private lateinit var splitpane : JSplitPane
