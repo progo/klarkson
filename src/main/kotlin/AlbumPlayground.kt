@@ -23,6 +23,10 @@ private enum class ZoomDirection (val value: Int) {
     OUT (-1)
 }
 
+enum class Direction {
+    LEFT, RIGHT, UP, DOWN
+}
+
 /**
  * Track selected albums and offers notifications to listeners.
  */
@@ -105,6 +109,45 @@ class AlbumOrganizer {
         val (x2, y2) = b
         fun p(a: AlbumCover) : Boolean = (x1 > a.x) && (a.x > x2) && (y1 > a.y) && (a.y > y2)
         return albums.filter(::p)
+    }
+
+    /**
+     * Find a nearby to point [p] an album cover that's to direction [dir].
+     */
+    fun getAlbumInTheDirectionOf(p: Point, dir: Direction) : AlbumCover? {
+        /*
+        First let's see if a simple conefied approach works okay for us:
+
+              \             /
+               \    UP     /
+                \         /
+                 \       /
+                  \     /
+            LEFT   (x,y)   RIGHT
+                  /     \
+                 /       \
+                /         \
+               /   DOWN    \
+              /             \
+
+         Findings: this works quite okay. Works well for matrix-aligned stuff.
+         */
+
+        // TODO actually a parabel search radius will be a smarter approach once
+        // we implement something.
+
+        // TODO Linear search and ordering over everything is not fast.
+        // Maybe best to incorporate a distance limitation right in the filtering
+        // pred.
+
+        val pred : (AlbumCover) -> Boolean = when (dir) {
+            Direction.UP    -> { ac -> (ac.y > p.y) and (abs(ac.x - p.x) < (ac.y - p.y)*2.0) }
+            Direction.DOWN  -> { ac -> (ac.y < p.y) and (abs(ac.x - p.x) < (p.y - ac.y)*2.0) }
+            Direction.LEFT  -> { ac -> (ac.x > p.x) and (abs(ac.y - p.y) < (ac.x - p.x)*2.0) }
+            Direction.RIGHT -> { ac -> (ac.x < p.x) and (abs(ac.y - p.y) < (p.x - ac.x)*2.0) }
+        }
+
+        return albums.filter(pred).minByOrNull { p.distance(it.x, it.y) }
     }
 
     /**
@@ -289,15 +332,29 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
                 "Frame took ${"%.2f".format(paint_time_ms)}ms", 0, 10)
     }
 
+    /**
+     * If we have one album selected then we will allow this navigation
+     */
+    private fun findAdjacentAlbumCover(dir: Direction) {
+        if (albumSelection.size() != 1)
+            return
+
+        val selected = albumSelection.first()
+        println("Move $selected")
+
+        val alb = albums.getAlbumInTheDirectionOf(Point(selected.x, selected.y), dir)
+        if (alb != null) {
+            albumSelection.replace(setOf(alb))
+        }
+    }
+
     override fun keyPressed(ke: KeyEvent) {
         val shift = if (ke.isShiftDown) { 200 } else { 100 }
         when (ke.keyCode) {
-//            KeyEvent.VK_LEFT -> viewport_x -= shift
-//            KeyEvent.VK_RIGHT -> viewport_x += shift
-//            KeyEvent.VK_UP -> viewport_y -= shift
-//            KeyEvent.VK_DOWN -> viewport_y += shift
-//            KeyEvent.VK_UP -> zoomIn()
-//            KeyEvent.VK_DOWN -> zoomOut()
+            KeyEvent.VK_LEFT -> findAdjacentAlbumCover(Direction.LEFT)
+            KeyEvent.VK_RIGHT -> findAdjacentAlbumCover(Direction.RIGHT)
+            KeyEvent.VK_UP -> findAdjacentAlbumCover(Direction.UP)
+            KeyEvent.VK_DOWN -> findAdjacentAlbumCover(Direction.DOWN)
             KeyEvent.VK_ENTER -> centerAroundPoint(0, 0)
             KeyEvent.VK_SPACE -> bringSelectedCoversTogether()
         }

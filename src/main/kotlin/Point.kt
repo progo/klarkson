@@ -1,5 +1,8 @@
 package klarksonmainframe
 
+import java.lang.Math.pow
+import java.lang.Math.sqrt
+
 //interface Point {
 //    val x: Int
 //    val y: Int
@@ -31,6 +34,9 @@ data class Point( val x: Int, val y: Int )  : Comparable<Point> {
     override operator fun compareTo(p: Point): Int = compareXY(this.x, this.y, p.x, p.y)
     fun min(p: Point) = if (this < p) this else p
     fun max(p: Point) = if (this > p) this else p
+
+    fun distance(x: Int, y: Int) : Double = sqrt(pow(this.x - x .toDouble(), 2.0) + pow(this.y - y.toDouble(), 2.0))
+    fun distance(p: Point) = this.distance(p.x, p.y)
 }
 
 /**
