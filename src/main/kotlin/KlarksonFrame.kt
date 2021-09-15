@@ -5,6 +5,8 @@ import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
 import java.awt.event.KeyEvent
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import java.awt.image.BufferedImage
 import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneDivider
@@ -55,7 +57,7 @@ class KlarksonFrame : JFrame() {
         }
     }
 
-    fun resetSplitPane() {
+    private fun resetSplitPane() {
         splitpane.apply {
             dividerLocation = size.width - DEFAULT_SPLIT_LOCATION - 3
         }
@@ -102,14 +104,19 @@ class KlarksonFrame : JFrame() {
         defaultCloseOperation = EXIT_ON_CLOSE
         setSize(1024, 1024)
         setLocationRelativeTo(null)
+
+        addWindowListener(object : WindowAdapter() {
+            override fun windowOpened(we: WindowEvent) {
+                resetSplitPane()
+            }
+        })
     }
+
 }
 
 private fun createAndShowGUI() {
     val frame = KlarksonFrame()
     frame.isVisible = true
-    // TODO there can be a tiny bit of race condition still
-    EventQueue.invokeLater(frame::resetSplitPane)
 }
 
 
