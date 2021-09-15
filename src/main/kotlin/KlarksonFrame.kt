@@ -4,6 +4,7 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
+import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -11,6 +12,19 @@ import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneDivider
 import javax.swing.plaf.basic.BasicSplitPaneUI
 import kotlin.system.exitProcess
+
+/**
+ * Build a Swing Timer that runs after [delayMs] ms and runs the function body.
+ */
+fun swingDelay(delayMs: Int, func: () -> Unit) {
+    Timer(delayMs) { _ -> func() } . apply {
+        isRepeats = false
+        start()
+    }
+}
+// Kotlin has some trouble with the types and override if we should use both forms
+// fun swingDelay(delayMs: Int, func: () -> Unit) = swingDelay(delayMs) { _ -> func() }
+
 
 class KlarksonFrame : JFrame() {
     private lateinit var splitpane : JSplitPane
@@ -40,8 +54,12 @@ class KlarksonFrame : JFrame() {
     }
 
     private fun resetSplitPane() {
-        splitpane.apply {
-            dividerLocation = size.width - DEFAULT_SPLIT_LOCATION - 3
+        // Add a little delay as a hack. Probably due to using a tiling WM that
+        // will immediately resize the newly created frame to its own liking.
+        swingDelay(10) {
+            splitpane.apply {
+                dividerLocation = size.width - DEFAULT_SPLIT_LOCATION - 3
+            }
         }
     }
 
