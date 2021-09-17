@@ -158,7 +158,7 @@ class AlbumOrganizer {
     }
 
     /**
-     *  Sort and order the albums
+     *  Sort and order the albums. Subject to become a noop if we switch to a tree structure.
      */
     fun reorganize() {
         albums.sort()
@@ -258,11 +258,19 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
     }
     private fun virtual2physical(p: Point): Point = virtual2physical(p.x, p.y)
 
+    /**
+     * See if virtual points [x], [y] are currently visible in the viewport.
+     */
+    private fun visibleInView(x: Int, y: Int) : Boolean {
+        val (px, py) = virtual2physical(x, y)
+        return (0 < px) and (px < width) and (0 < py) and (py < height)
+    }
+
     private fun paintAlbums(g: Graphics2D) {
         // looks good -- 5000 blank albums or 850 pictured albums poses no sweat
 
+        val coverside = (viewportScaleFactor * ALBUM_COVER_SIZE).toInt()
         for (albumcover in albums) {
-            val coverside = (viewportScaleFactor * ALBUM_COVER_SIZE).toInt()
             val (xp, yp) = virtual2physical(albumcover.x, albumcover.y) - (coverside / 2)
 
             if (albumcover.cover != null) {
@@ -340,11 +348,16 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
             return
 
         val selected = albumSelection.first()
-        println("Move $selected")
+        // println("Move $selected")
 
         val alb = albums.getAlbumInTheDirectionOf(Point(selected.x, selected.y), dir)
         if (alb != null) {
             albumSelection.replace(setOf(alb))
+
+            val x = alb.x
+            val y = alb.y
+            if (!visibleInView(x, y))
+                centerAroundPoint(x, y)
         }
     }
 
@@ -355,7 +368,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
             KeyEvent.VK_RIGHT -> findAdjacentAlbumCover(Direction.RIGHT)
             KeyEvent.VK_UP -> findAdjacentAlbumCover(Direction.UP)
             KeyEvent.VK_DOWN -> findAdjacentAlbumCover(Direction.DOWN)
-            KeyEvent.VK_ENTER -> centerAroundPoint(0, 0)
+            KeyEvent.VK_ENTER -> centerAroundSelected()
             KeyEvent.VK_SPACE -> bringSelectedCoversTogether()
         }
 
@@ -651,6 +664,17 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         }.apply {
             start()
         }
+    }
+
+    /**
+     * Center around selected album
+     */
+    private fun centerAroundSelected() {
+        if (albumSelection.size() != 1)
+            return
+
+        val alb = albumSelection.first()
+        centerAroundPoint(alb.x, alb.y)
     }
 
     override fun mouseMoved(me: MouseEvent) {
