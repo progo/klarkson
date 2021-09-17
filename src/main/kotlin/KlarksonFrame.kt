@@ -1,11 +1,9 @@
 package klarksonmainframe
 
-import jdk.jfr.internal.SecuritySupport.getResourceAsStream
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
-import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent

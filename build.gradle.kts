@@ -13,8 +13,10 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+
+    // 6.2.5 requires Java 11, which we have
     // https://mvnrepository.com/artifact/org.hihn/javampd
-    implementation("org.hihn:javampd:6.2.5")
+    implementation("org.hihn:javampd:6.1.23")
 }
 
 tasks.test {
