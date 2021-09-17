@@ -1,30 +1,14 @@
-import org.bff.javampd.command.MpdCommand
+package klarksonmainframe
+
 import org.bff.javampd.server.Mpd
-import org.bff.javampd.song.MpdSong
 import org.bff.javampd.song.SongSearcher
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 
 /**
- *
- * Extension func
+ * http://finnyb.github.io/javampd/6.1.0-SNAPSHOT/apidocs/index.html
  */
-val mpd = Mpd.Builder().build()
-
-fun stripAlbumArtistTag(s: String) : String {
-    val prefix = "AlbumArtist: "
-    if (s.startsWith(prefix))
-        return s.substring(prefix.length)
-    else
-        return s
-}
-
-fun MpdSong.getAlbumArtist() : String {
-    val resp = mpd.commandExecutor.sendCommand("list albumartist file", this.toString())
-    return stripAlbumArtistTag(resp.firstOrNull().toString())
-}
 
 class MPDClientTest {
 
@@ -35,23 +19,25 @@ class MPDClientTest {
 
 
     @Test
-            /**
-             * Prodding mpd interface
-             */
+    /**
+     * Prodding mpd interface
+     */
     fun mpd() {
         println("----------------------------------")
+        val mpd = Mpd.Builder().build()
         println("mpd connected = ${mpd.isConnected}")
 
-        val status = mpd.player.status
-        println("Player status = $status")
+        val player = mpd.player
+        println("Player status = ${player.status}")
+        println("Player plays = ${player.currentSong.file}")
 
         val dpSongs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, "Daft Punk")
-
-        // mpdsong :: MpdSong
+        var length = 0
         for (ds in dpSongs) {
-            println("$ds\nArtist [${ds.artistName}], AlbumArtist [${ds.getAlbumArtist()}]")
+            length += ds.length
+            println("$ds\nArtist [${ds.artistName}], AlbumArtist [${mpd.getAlbumArtist(ds)}]")
         }
-
+        println("${length/60.0} minutes in total")
 
         mpd.close()
         println("----------------------------------")
