@@ -1,5 +1,6 @@
 package klarksonmainframe
 
+import jdk.jfr.internal.SecuritySupport.getResourceAsStream
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.EventQueue
@@ -30,6 +31,8 @@ class KlarksonFrame : JFrame() {
     private lateinit var splitpane : JSplitPane
     private val DEFAULT_SPLIT_LOCATION = 200
 
+    private fun getResource(s: String) = this.javaClass.classLoader.getResource(s)
+
     init {
         createUI()
     }
@@ -42,11 +45,13 @@ class KlarksonFrame : JFrame() {
 
             val file = JMenu("Klarkson")
             file.mnemonic = KeyEvent.VK_K
+            file.icon = ImageIcon(getResource("icons16/basketball [#790].png"))
 
             val eMenuItem = JMenuItem("Exit")
             eMenuItem.mnemonic = KeyEvent.VK_X
             eMenuItem.toolTipText = "Exit application"
             eMenuItem.addActionListener { exitProcess(0) }
+            eMenuItem.icon = ImageIcon(getResource("icons16/exit_full_screen [#905].png"))
 
             file.add(eMenuItem)
             add(file)
