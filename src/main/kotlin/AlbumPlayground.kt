@@ -176,7 +176,14 @@ private fun createAlbumCovers(): Sequence<AlbumCover>  {
 
     fun loadCover(f: File) : AlbumCover {
         return AlbumCover(
-            Album("artist${Random.nextInt()}", "album${Random.nextInt()}", Random.nextInt(1900, 2030)),
+            Album(
+                artist = "artist${Random.nextInt()}",
+                album = "album${Random.nextInt()}",
+                year = Random.nextInt(1900, 2030),
+                discCount = 1,
+                runtime = 1,
+                songs = listOf()
+            ),
             (Random.nextInt() % 300 ) * 15,
             (Random.nextInt() % 300 ) * 15,
             try { ImageIO.read(f) } catch (ie: IIOException) { null },

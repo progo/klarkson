@@ -25,22 +25,68 @@ class MPDClientTest {
     fun mpd() {
         println("----------------------------------")
         val mpd = Mpd.Builder().build()
-        println("mpd connected = ${mpd.isConnected}")
+        println("MPD connected = ${mpd.isConnected}")
 
         val player = mpd.player
         println("Player status = ${player.status}")
-        println("Player plays = ${player.currentSong.file}")
-
-        val dpSongs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, "Daft Punk")
-        var length = 0
-        for (ds in dpSongs) {
-            length += ds.length
-            println("$ds\nArtist [${ds.artistName}], AlbumArtist [${mpd.getAlbumArtist(ds)}]")
-        }
-        println("${length/60.0} minutes in total")
+        println("Player playing = `${player.currentSong.file}`")
 
         mpd.close()
         println("----------------------------------")
     }
 
+
+    @Test
+    fun collectSongs() {
+        println("----------------------------------")
+        val mpd = Mpd.Builder().build()
+
+        val dpSongs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, "Daft Punk")
+        val songs = dpSongs.map { song -> Song.read(mpd, song) }.toList()
+
+        for (s in songs) {
+            println("$s")
+        }
+
+        println("\n===\n")
+
+        val albums = songs.groupBy { s -> Pair(s.albumartist ?: s.artist, s.album) }
+
+        for (a in albums) {
+            println(a)
+        }
+
+        println("\n===\n")
+
+        val alb2 = collectIntoAlbums(mpd, dpSongs)
+        for (a in alb2) {
+            println("${a.album} is ${a.runtime.toMinutes()} minutes, or [${a.runtime.toHuman()}].")
+        }
+
+        mpd.close()
+        println("----------------------------------")
+    }
+
+    @Test
+    fun testVAAlbums() {
+        println("----------------------------------")
+        val mpd = Mpd.Builder().build()
+
+        val testSearch = "Blade Runner"
+
+        val songs = mpd.songSearcher.search(SongSearcher.ScopeType.ALBUM, testSearch)
+        val albums = collectIntoAlbums(mpd, songs)
+
+        println("*** For search \"$testSearch\" we got ${albums.size} albums.")
+
+        for (a in albums) {
+            println("- ${a.album} by `${a.artist}' is ${a.runtime.toMinutes()} minutes, or [${a.runtime.toHuman()}] over ${a.songs.size} tracks.")
+            for (s in a.songs) {
+                println("  - ${s.trackNumber}/${s.discNumber ?: 1} [${s.artist}] - [${s.title}]")
+            }
+        }
+
+        mpd.close()
+        println("----------------------------------")
+    }
 }
