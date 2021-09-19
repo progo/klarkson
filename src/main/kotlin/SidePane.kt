@@ -3,7 +3,11 @@ package klarksonmainframe
 import java.awt.*
 import javax.swing.*
 
-class SidePane(albumSelection: AlbumSelection, menubar: JMenuBar) : JPanel() {
+class SidePane(
+    albumSelection: AlbumSelection,
+    menubar: JMenuBar,
+    toolbar: JToolBar
+) : JPanel() {
     private val txtArtist : JLabel
     private val txtAlbum : JLabel
     private val txtCoverImage : JLabel
@@ -14,6 +18,7 @@ class SidePane(albumSelection: AlbumSelection, menubar: JMenuBar) : JPanel() {
         background = Color.BLACK
 
         add(menubar, BorderLayout.NORTH)
+        add(toolbar, BorderLayout.SOUTH)
 
         val albumshow = JPanel().apply {
             background = Color.BLACK

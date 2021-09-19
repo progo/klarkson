@@ -35,6 +35,27 @@ class KlarksonFrame : JFrame() {
         createUI()
     }
 
+    private fun createToolbar(): JToolBar {
+        return JToolBar().apply {
+
+            add(JButton().apply {
+                icon = ImageIcon(getResource("gf24/playback_prev.png"))
+            })
+
+            add(JButton().apply {
+                icon = ImageIcon(getResource("gf24/playback_play.png"))
+            })
+
+            add(JButton().apply {
+                icon = ImageIcon(getResource("gf24/playback_next.png"))
+            })
+
+            add(JButton().apply {
+                icon = ImageIcon(getResource("gf24/playback_stop.png"))
+            })
+        }
+    }
+
     private fun createMenuBar(): JMenuBar {
         return JMenuBar().apply {
             background = Color.ORANGE
@@ -43,13 +64,12 @@ class KlarksonFrame : JFrame() {
 
             val file = JMenu("Klarkson")
             file.mnemonic = KeyEvent.VK_K
-            file.icon = ImageIcon(getResource("icons16/basketball [#790].png"))
+            file.icon = ImageIcon(getResource("gf16/burst.png"))
 
             val eMenuItem = JMenuItem("Exit")
             eMenuItem.mnemonic = KeyEvent.VK_X
             eMenuItem.toolTipText = "Exit application"
             eMenuItem.addActionListener { exitProcess(0) }
-            eMenuItem.icon = ImageIcon(getResource("icons16/exit_full_screen [#905].png"))
 
             file.add(eMenuItem)
             add(file)
@@ -87,7 +107,8 @@ class KlarksonFrame : JFrame() {
         val albumSelection = AlbumSelection()
         val sidepane = SidePane(
             albumSelection = albumSelection,
-            menubar = createMenuBar()
+            menubar = createMenuBar(),
+            toolbar = createToolbar()
         )
         val playground = AlbumPlayground(albumSelection = albumSelection)
 

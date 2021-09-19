@@ -651,7 +651,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         val dy = y - viewportY
 
         val animationDurationMs = 200
-        val steps = 20
+        val steps = 50
         var count = 0
 
         Timer(animationDurationMs / steps) { ae: ActionEvent ->
