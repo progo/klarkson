@@ -165,7 +165,7 @@ class AlbumOrganizer {
     }
 }
 
-private fun createAlbumCovers(): Sequence<AlbumCover>  {
+fun createAlbumCovers(count : Int = 100): Sequence<AlbumCover>  {
     fun randomColor(): Color {
         return Color(
             Random.nextInt(255),
@@ -190,7 +190,7 @@ private fun createAlbumCovers(): Sequence<AlbumCover>  {
             randomColor()
         )
     }
-    return File("/home/progo/koodi/mpyd/data/covers/").walk().shuffled().take(100).map(::loadCover)
+    return File("/home/progo/koodi/mpyd/data/covers/").walk().shuffled().take(count).map(::loadCover)
 }
 
 class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {

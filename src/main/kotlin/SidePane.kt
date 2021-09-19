@@ -13,12 +13,15 @@ class SidePane(
     private val txtCoverImage : JLabel
     private var shownCover : AlbumCover? = null
 
+    /*
+    The layout is currently two nested BorderLayouts that ensure that borders are well populated.
+     */
+
     init {
         layout = BorderLayout()
         background = Color.BLACK
 
         add(menubar, BorderLayout.NORTH)
-        add(toolbar, BorderLayout.SOUTH)
 
         val albumshow = JPanel().apply {
             background = Color.BLACK
@@ -46,8 +49,21 @@ class SidePane(
             add(txtAlbum)
         }
 
-        add(albumshow, BorderLayout.CENTER)
+        val albumInboxList = DefaultListModel<AlbumCover>()
+        val albumInboxScrolled = JScrollPane(AlbumInbox(albumInboxList))
+        for (a in createAlbumCovers(500)) {
+            albumInboxList.addElement(a)
+        }
 
+        val inner = JPanel().apply {
+            layout = BorderLayout()
+
+            add(albumshow, BorderLayout.NORTH)
+            add(albumInboxScrolled, BorderLayout.CENTER)
+            add(toolbar, BorderLayout.SOUTH)
+        }
+
+        add(inner, BorderLayout.CENTER)
         albumSelection.registerListener(::onAlbumSelection)
     }
 
