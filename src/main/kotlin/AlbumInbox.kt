@@ -33,10 +33,7 @@ class AlbumInbox(lm : DefaultListModel<AlbumCover>) : JList<AlbumCover>(lm) {
             ): Component {
                 val album = albumcover.album
                 text = "${album.artist} - ${album.album}"
-
-                if (albumcover.cover != null) {
-                    icon = ImageIcon(albumcover.cover.getScaledInstance(rowHeight, rowHeight, Image.SCALE_SMOOTH))
-                }
+                icon = AlbumCoverImageService.get(albumcover, sz = rowHeight)
 
                 if (isSelected) {
                     foreground = list.selectionForeground
