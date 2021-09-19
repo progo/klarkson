@@ -4,12 +4,16 @@ import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.datatransfer.Transferable
+import java.awt.dnd.*
 import java.awt.event.*
 import java.io.File
 import javax.imageio.IIOException
 import javax.imageio.ImageIO
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.Timer
+import javax.swing.TransferHandler
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 import kotlin.math.*
@@ -193,11 +197,12 @@ fun createAlbumCovers(count : Int = 100): Sequence<AlbumCover>  {
     return File("/home/progo/koodi/mpyd/data/covers/").walk().shuffled().take(count).map(::loadCover)
 }
 
-class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
+class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, DropTargetListener {
     private val albums = AlbumOrganizer()
 
     init {
         background = Color(225, 205, 40)
+        DropTarget(this, this)
 
         for (a in createAlbumCovers()) {
             albums.put(a)
@@ -254,6 +259,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         return Point(xv, yv)
     }
     private fun physical2virtual(p: Point): Point = physical2virtual(p.x, p.y)
+    private fun physical2virtual(p: java.awt.Point) = physical2virtual(p.x, p.y)
 
     /**
      * Virtual on-screen coordinates into physical ones.
@@ -705,4 +711,37 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
             zoomOut(mwe.x, mwe.y)
         }
     }
+
+    /**
+     * Accept drag-n-drops  from other components. We are focused on the JList
+     * that houses AlbumCovers and our code assumes it blindly, at the risk of
+     * numerous bugs.
+     *
+     * Swing and AWT have very cool DnD mechanisms in place, but they're very
+     * complex and for this implementation we are well served with a dead
+     * simple, if hacky, mechanism with little elegance.
+     */
+    override fun drop(dtde: DropTargetDropEvent) {
+        val (vx, vy) = physical2virtual(dtde.location)
+
+        for (a in AlbumInboxSelection.getSelection()) {
+            a.x = vx + Random.nextInt(-15, 15)
+            a.y = vy + Random.nextInt(-15, 15)
+            albums.put(a)
+        }
+
+        albums.reorganize()
+        repaint()
+
+        AlbumInboxSelection.deleteSelected()
+    }
+
+    override fun dragOver(dtde: DropTargetDragEvent) {
+        val (vx, vy) = physical2virtual(dtde.location)
+        // TODO render album(s)
+    }
+
+    override fun dropActionChanged(p0: DropTargetDragEvent?) { }
+    override fun dragEnter(p0: DropTargetDragEvent?) { }
+    override fun dragExit(p0: DropTargetEvent?) { }
 }

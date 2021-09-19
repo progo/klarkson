@@ -2,7 +2,6 @@ package klarksonmainframe
 
 import java.awt.Color
 import java.awt.Component
-import java.awt.Image
 import javax.swing.*
 
 /**
@@ -19,8 +18,12 @@ class AlbumInbox(lm : DefaultListModel<AlbumCover>) : JList<AlbumCover>(lm) {
         foreground = Color.ORANGE.darker()
         selectionBackground = Color.BLACK
         selectionForeground = Color.ORANGE
-    }
 
+        // DnD, a complex beast.
+        dragEnabled = true
+        // And a singleton hack to go with it
+        AlbumInboxSelection.setListComp(this)
+    }
 
     private fun makeCellRenderer() : ListCellRenderer<AlbumCover> {
         return object : JLabel(), ListCellRenderer<AlbumCover> {
@@ -44,9 +47,31 @@ class AlbumInbox(lm : DefaultListModel<AlbumCover>) : JList<AlbumCover>(lm) {
                 }
 
                 isOpaque = true
-
                 return this
             }
         }
     }
+}
+
+// dirty hack to pass global STATE
+object AlbumInboxSelection {
+    private var listComp : JList<AlbumCover>? = null
+
+    fun setListComp(lc : JList<AlbumCover>) {
+        listComp = lc
+    }
+
+    fun getSelection() : List<AlbumCover> {
+        val lc = listComp ?: return emptyList()
+        return lc.selectedValuesList.toList()
+    }
+
+    fun deleteSelected() {
+        val lc = listComp ?: return
+        val lm : DefaultListModel<AlbumCover> = lc.model as DefaultListModel<AlbumCover>
+        for (index in lc.selectedIndices.reversed()) {
+            lm.remove(index)
+        }
+    }
+
 }
