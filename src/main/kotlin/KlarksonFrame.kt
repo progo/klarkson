@@ -24,6 +24,7 @@ class KlarksonFrame : JFrame() {
 
     private fun createToolbar(): JToolBar {
         return JToolBar().apply {
+            isFloatable = false
 
             add(JButton().apply {
                 icon = ImageIcon(getResource("gf24/playback_prev.png"))
@@ -75,7 +76,7 @@ class KlarksonFrame : JFrame() {
 
     private fun createAndAdjustSplitPane(left: JComponent, right: JComponent): JSplitPane {
         return JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right).apply {
-            dividerSize = 3
+            dividerSize = 8
 
             ui = object : BasicSplitPaneUI() {
                 override fun createDefaultDivider(): BasicSplitPaneDivider {
