@@ -12,19 +12,6 @@ import javax.swing.plaf.basic.BasicSplitPaneDivider
 import javax.swing.plaf.basic.BasicSplitPaneUI
 import kotlin.system.exitProcess
 
-/**
- * Build a Swing Timer that runs after [delayMs] ms and runs the function body.
- */
-fun swingDelay(delayMs: Int, func: () -> Unit) {
-    Timer(delayMs) { _ -> func() } . apply {
-        isRepeats = false
-        start()
-    }
-}
-// Kotlin has some trouble with the types and override if we should use both forms
-// fun swingDelay(delayMs: Int, func: () -> Unit) = swingDelay(delayMs) { _ -> func() }
-
-
 class KlarksonFrame : JFrame() {
     private lateinit var splitpane : JSplitPane
     private val DEFAULT_SPLIT_LOCATION = 200
