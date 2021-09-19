@@ -50,7 +50,7 @@ class MPDClientTest {
 
         println("\n===\n")
 
-        val albums = songs.groupBy { s -> Pair(s.albumartist ?: s.artist, s.album) }
+        val albums = songs.groupBy { s -> Pair(s.albumArtist ?: s.artist, s.album) }
 
         for (a in albums) {
             println(a)

@@ -11,14 +11,26 @@ data class Album(
     val discCount: Int,
     val songs: List<Song>,
     val runtime: Time = songs.sumOf { s -> s.runtime },
-)
+) {
+    companion object {
+        fun make(artist: String, album: String, songs: Collection<Song>) : Album {
+            return Album(
+                artist = artist,
+                album = album,
+                year = analyzeAlbumYear(songs),
+                discCount = analyzeDiscCount(songs),
+                songs = songs.toList()
+            )
+        }
+    }
+}
 
 data class Song(
     val artist: String,
     val album: String,
     val title: String,
     val file: String,
-    val albumartist: String?,
+    val albumArtist: String?,
     val trackNumber: Int?,
     val discNumber: Int?,
     val year: Int?,
@@ -35,7 +47,7 @@ data class Song(
                 file = t.file,
                 runtime = t.length,
                 year = t.year.toIntOrNull(),
-                albumartist = mpd.getAlbumArtist(t),
+                albumArtist = mpd.getAlbumArtist(t),
                 comment = t.comment,
                 genre = t.genre,
                 discNumber = t.discNumber.toIntOrNull(),
@@ -64,16 +76,10 @@ fun collectIntoAlbums(mpd: Mpd, songs: Collection<MpdSong>) : List<Album> {
 
     val albums = songs
         .map { song -> Song.read(mpd, song) }
-        .groupBy { s -> Pair(s.albumartist ?: s.artist, s.album) }
+        .groupBy { s -> Pair(s.albumArtist ?: s.artist, s.album) }
         .map { (artistalbum, songs) ->
             val (artist, album) = artistalbum
-            Album(
-                artist = artist,
-                album = album,
-                year = analyzeAlbumYear(songs),
-                discCount = analyzeDiscCount(songs),
-                songs = songs
-            )
+            Album.make(artist, album, songs)
         }
 
     return albums
