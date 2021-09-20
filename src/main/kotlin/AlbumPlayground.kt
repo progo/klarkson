@@ -1,19 +1,13 @@
 package klarksonmainframe
 
-import java.awt.BasicStroke
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.datatransfer.Transferable
+import java.awt.*
 import java.awt.dnd.*
 import java.awt.event.*
 import java.io.File
 import javax.imageio.IIOException
 import javax.imageio.ImageIO
-import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.Timer
-import javax.swing.TransferHandler
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 import kotlin.math.*
@@ -82,7 +76,7 @@ class AlbumSelection : Iterable<AlbumCover> {
 /**
  * AlbumOrganizer takes care of the cover positions and shit.
  */
-class AlbumOrganizer {
+class AlbumOrganizer : Iterable<AlbumCover> {
     // TreeSet is a strong idea here
     private val albums : ArrayList<AlbumCover> = ArrayList()
 
@@ -157,7 +151,7 @@ class AlbumOrganizer {
     /**
      * Seq of everything
      */
-    operator fun iterator() : Iterator<AlbumCover> {
+    override operator fun iterator() : Iterator<AlbumCover> {
         return albums.iterator()
     }
 
@@ -211,6 +205,8 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
     }
 
     private val coversOnTheMove: MutableSet<AlbumCover> = HashSet()
+    private val coversOnTheDrag: MutableList<AlbumCover> = mutableListOf()
+    private var coverDragPoint: Point? = null
 
     private var viewportX = 0
     private var viewportY = 0
@@ -279,7 +275,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         return (0 < px) and (px < width) and (0 < py) and (py < height)
     }
 
-    private fun paintAlbums(g: Graphics2D) {
+    private fun paintAlbums(g: Graphics2D, albums : Iterable<AlbumCover>, highlight : Boolean = false) {
         // looks good -- 5000 blank albums or 850 pictured albums poses no sweat
 
         val coverside = (viewportScaleFactor * ALBUM_COVER_SIZE).toInt()
@@ -287,10 +283,21 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
             val (xp, yp) = virtual2physical(albumcover.x, albumcover.y) - (coverside / 2)
 
             if (albumcover.cover != null) {
-                g.drawImage(albumcover.cover, xp, yp, coverside, coverside, null)
+                g.drawImage(
+                    // OBS. Technically cache is not needed here to ensure smooth operation.
+                    // We just need a temporary copies of brightened images and the cache
+                    // offers a handy storage.
+                    // This is why we won't be putting all covers through the cache.
+                    if (highlight) AlbumCoverImageService.get(albumcover, 0, true) else albumcover.cover,
+                    xp,
+                    yp,
+                    coverside,
+                    coverside,
+                    null
+                )
             }
             else {
-                g.color = albumcover.color
+                g.color = if (highlight) albumcover.color.brighter() else albumcover.color
                 g.fill3DRect(xp, yp, coverside, coverside, true)
             }
 
@@ -337,9 +344,10 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
 
         val paint_time_ms = 1e-6 * measureNanoTime {
             paintBackground(g2)
-            paintAlbums(g2)
+            paintAlbums(g2, albums)
             // paintCrosshair(g2)
             paintLasso(g2)
+            paintAlbums(g2, coversOnTheDrag, highlight = true)
         }
 
         g2.color = Color.LIGHT_GRAY
@@ -724,24 +732,46 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
     override fun drop(dtde: DropTargetDropEvent) {
         val (vx, vy) = physical2virtual(dtde.location)
 
-        for (a in AlbumInboxSelection.getSelection()) {
-            a.x = vx + Random.nextInt(-15, 15)
-            a.y = vy + Random.nextInt(-15, 15)
+        val randomize = coversOnTheDrag.size > 1
+
+        for (a in coversOnTheDrag) {
+            a.x = vx + if (randomize) Random.nextInt(-15, 15) else 0
+            a.y = vy + if (randomize) Random.nextInt(-15, 15) else 0
             albums.put(a)
         }
 
         albums.reorganize()
-        repaint()
+        finishDragNDrop()
+        // repaint()
 
         AlbumInboxSelection.deleteSelected()
     }
 
+    private fun finishDragNDrop() {
+        coversOnTheDrag.clear()
+        coverDragPoint = null
+        repaint()
+    }
+
     override fun dragOver(dtde: DropTargetDragEvent) {
+        coverDragPoint = Point(dtde.location)
         val (vx, vy) = physical2virtual(dtde.location)
-        // TODO render album(s)
+        var shift = 0
+        for (a in coversOnTheDrag) {
+            a.x = vx + shift
+            a.y = vy + shift
+            shift += 8
+        }
+        repaint()
     }
 
     override fun dropActionChanged(p0: DropTargetDragEvent?) { }
-    override fun dragEnter(p0: DropTargetDragEvent?) { }
-    override fun dragExit(p0: DropTargetEvent?) { }
+    override fun dragEnter(dtde: DropTargetDragEvent) {
+        coversOnTheDrag.addAll(AlbumInboxSelection.getSelection())
+        coverDragPoint = Point(dtde.location)
+    }
+
+    override fun dragExit(p0: DropTargetEvent?) {
+        finishDragNDrop()
+    }
 }

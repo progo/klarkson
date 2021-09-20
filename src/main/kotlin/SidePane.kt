@@ -100,7 +100,7 @@ class SidePane(
     private fun showCover(c: AlbumCover?) {
         val coverImage = c?.cover
         if (coverImage != null) {
-            txtCoverImage.icon = AlbumCoverImageService.get(c, sz = width)
+            txtCoverImage.icon = AlbumCoverImageService.getAsIcon(c, sz = width)
         } else {
             txtCoverImage.icon = null
         }

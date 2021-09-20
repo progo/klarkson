@@ -1,7 +1,7 @@
 package klarksonmainframe
 
-import java.lang.Math.pow
-import java.lang.Math.sqrt
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 //interface Point {
 //    val x: Int
@@ -25,6 +25,7 @@ fun compareXY (x1 : Int, y1 : Int, x2 : Int, y2 : Int) : Int {
  */
 data class Point( val x: Int, val y: Int )  : Comparable<Point> {
     constructor(x: Double, y: Double) : this(x.toInt(), y.toInt())
+    constructor(p: java.awt.Point) : this(p.x, p.y)
 
     fun times(scale: Double) : Point = Point(x * scale, y * scale)
     fun times(scale: Int) : Point = Point(x * scale, y * scale)
@@ -35,7 +36,8 @@ data class Point( val x: Int, val y: Int )  : Comparable<Point> {
     fun min(p: Point) = if (this < p) this else p
     fun max(p: Point) = if (this > p) this else p
 
-    fun distance(x: Int, y: Int) : Double = sqrt(pow(this.x - x .toDouble(), 2.0) + pow(this.y - y.toDouble(), 2.0))
+    fun distance(x: Int, y: Int) : Double =
+        sqrt((this.x - x.toDouble()).pow(2.0) + (this.y - y.toDouble()).pow(2.0))
     fun distance(p: Point) = this.distance(p.x, p.y)
 }
 
