@@ -631,6 +631,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
     }
 
     override fun mouseClicked(me: MouseEvent) {
+        requestFocusInWindow()
         val (x, y) = physical2virtual(me.x, me.y)
 
         if (me.clickCount == 2) {

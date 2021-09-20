@@ -111,6 +111,7 @@ class KlarksonFrame : JFrame() {
         playground.addMouseListener(playground)
         playground.addKeyListener(playground)
         playground.isFocusable = true
+        playground.isRequestFocusEnabled = true
 
         title = "Klarkson"
         defaultCloseOperation = EXIT_ON_CLOSE
