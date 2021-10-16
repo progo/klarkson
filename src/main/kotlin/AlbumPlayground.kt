@@ -163,33 +163,33 @@ class AlbumOrganizer : Iterable<AlbumCover> {
     }
 }
 
-fun createAlbumCovers(count : Int = 100): Sequence<AlbumCover>  {
-    fun randomColor(): Color {
-        return Color(
-            Random.nextInt(255),
-            Random.nextInt(255),
-            Random.nextInt(255),
-        )
-    }
-
-    fun loadCover(f: File) : AlbumCover {
-        return AlbumCover(
-            Album(
-                artist = "artist${Random.nextInt()}",
-                album = "album${Random.nextInt()}",
-                year = Random.nextInt(1900, 2030),
-                discCount = 1,
-                runtime = 1,
-                songs = listOf()
-            ),
-            (Random.nextInt() % 300 ) * 15,
-            (Random.nextInt() % 300 ) * 15,
-            try { ImageIO.read(f) } catch (ie: IIOException) { null },
-            randomColor()
-        )
-    }
-    return File("/home/progo/koodi/mpyd/data/covers/").walk().shuffled().take(count).map(::loadCover)
-}
+//fun createAlbumCovers(count : Int = 100): Sequence<AlbumCover>  {
+//    fun randomColor(): Color {
+//        return Color(
+//            Random.nextInt(255),
+//            Random.nextInt(255),
+//            Random.nextInt(255),
+//        )
+//    }
+//
+//    fun loadCover(f: File) : AlbumCover {
+//        return AlbumCover(
+//            Album(
+//                artist = "artist${Random.nextInt()}",
+//                album = "album${Random.nextInt()}",
+//                year = Random.nextInt(1900, 2030),
+//                discCount = 1,
+//                runtime = 1,
+//                songs = listOf()
+//            ),
+//            (Random.nextInt() % 300 ) * 15,
+//            (Random.nextInt() % 300 ) * 15,
+//            try { ImageIO.read(f) } catch (ie: IIOException) { null },
+//            randomColor()
+//        )
+//    }
+//    return File("/home/progo/koodi/mpyd/data/covers/").walk().shuffled().take(count).map(::loadCover)
+//}
 
 class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, DropTargetListener {
     private val albums = AlbumOrganizer()
@@ -198,10 +198,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         background = Color(225, 205, 40)
         DropTarget(this, this)
 
-        for (a in createAlbumCovers()) {
-            albums.put(a)
-        }
-        albums.reorganize()
+        AlbumCoverChangeNotificator.registerListener { repaint() }
     }
 
     private val coversOnTheMove: MutableSet<AlbumCover> = HashSet()
@@ -282,24 +279,18 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         for (albumcover in albums) {
             val (xp, yp) = virtual2physical(albumcover.x, albumcover.y) - (coverside / 2)
 
-            if (albumcover.cover != null) {
-                g.drawImage(
-                    // OBS. Technically cache is not needed here to ensure smooth operation.
-                    // We just need a temporary copies of brightened images and the cache
-                    // offers a handy storage.
-                    // This is why we won't be putting all covers through the cache.
-                    if (highlight) AlbumCoverImageService.get(albumcover, 0, true) else albumcover.cover,
-                    xp,
-                    yp,
-                    coverside,
-                    coverside,
-                    null
-                )
-            }
-            else {
-                g.color = if (highlight) albumcover.color.brighter() else albumcover.color
-                g.fill3DRect(xp, yp, coverside, coverside, true)
-            }
+            g.drawImage(
+                // OBS. Technically cache is not needed here to ensure smooth operation.
+                // We just need a temporary copies of brightened images and the cache
+                // offers a handy storage.
+                // This is why we won't be putting all covers through the cache.
+                if (highlight) AlbumCoverImageService.get(albumcover, 0, true) else albumcover.cover,
+                xp,
+                yp,
+                coverside,
+                coverside,
+                null
+            )
 
             if (albumcover in albumSelection) {
                 g.color = Color.BLACK
@@ -350,9 +341,9 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
             paintAlbums(g2, coversOnTheDrag, highlight = true)
         }
 
-        g2.color = Color.LIGHT_GRAY
-        g2.fillRect(0, 0, width, 14)
         g2.color = Color.BLACK
+        g2.fillRect(0, 0, width, 14)
+        g2.color = Color.YELLOW
         g2.drawString( "Zoom level ${(viewportScaleFactor * 100).toInt()}%. " +
                 // "Drag mouse1 to move covers. " +
                 // "Drag mouse2 to pan. " +

@@ -2,6 +2,7 @@ package klarksonmainframe
 
 import org.bff.javampd.server.Mpd
 import org.bff.javampd.song.MpdSong
+import java.security.MessageDigest
 
 data class Album(
     /** album artist */
@@ -22,6 +23,17 @@ data class Album(
                 songs = songs.toList()
             )
         }
+    }
+
+    fun readableHash() : String {
+        val msg = "$artist\n$album".lowercase().toByteArray()
+        val md = MessageDigest.getInstance("SHA-256")
+        val dig = md.digest(msg)
+        return dig.fold("") { str, it -> str + "%02x".format(it) }
+    }
+
+    fun getCover() : AlbumCover {
+        return AlbumCover(this)
     }
 }
 

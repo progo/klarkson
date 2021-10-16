@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.10"
+    kotlin("jvm") version "1.5.30"
 }
 
 group = "me.progo"
@@ -17,6 +17,8 @@ dependencies {
     // 6.2.5 requires Java 11, which we have
     // https://mvnrepository.com/artifact/org.hihn/javampd
     implementation("org.hihn:javampd:6.1.23")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 }
 
 tasks.test {

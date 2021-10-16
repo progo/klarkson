@@ -48,7 +48,8 @@ class SidePane(
 
         val albumInboxList = DefaultListModel<AlbumCover>()
         val albumInboxScrolled = JScrollPane(AlbumInbox(albumInboxList))
-        for (a in createAlbumCovers(100)) { albumInboxList.addElement(a) }
+        // for (a in createAlbumCovers(100)) { albumInboxList.addElement(a) }
+        for (a in MpdServer.getAlbums()) { albumInboxList.addElement(a.getCover()) }
 
         val inner = JPanel().apply {
             layout = BorderLayout()

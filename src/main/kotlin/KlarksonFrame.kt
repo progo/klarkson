@@ -70,6 +70,8 @@ class KlarksonFrame : JFrame() {
         swingDelay(10) {
             splitpane.apply {
                 dividerLocation = size.width - DEFAULT_SPLIT_LOCATION - 3
+                revalidate()
+                repaint()
             }
         }
     }
@@ -82,7 +84,7 @@ class KlarksonFrame : JFrame() {
                 override fun createDefaultDivider(): BasicSplitPaneDivider {
                     return object : BasicSplitPaneDivider(this) {
                         override fun paint(g: Graphics) {
-                            g.color = Color.LIGHT_GRAY
+                            g.color = Color.DARK_GRAY
                             g.fillRect(0, 0, width, height)
                         }
                     }
@@ -122,16 +124,27 @@ class KlarksonFrame : JFrame() {
             override fun windowOpened(we: WindowEvent) {
                 resetSplitPane()
             }
+
+            override fun windowClosing(we: WindowEvent) {
+                super.windowClosed(we)
+                printFinalStatistics()
+            }
         })
     }
+}
 
+fun printFinalStatistics() {
+    println("Bye!")
+    println("----------------------------------------------------------")
+    println(LastFmClient.getStatistics())
+    println("----------------------------------------------------------")
+    println(AlbumCoverImageService.reportCacheStatistics())
 }
 
 private fun createAndShowGUI() {
     val frame = KlarksonFrame()
     frame.isVisible = true
 }
-
 
 fun main() {
     EventQueue.invokeLater(::createAndShowGUI)

@@ -19,10 +19,12 @@ class AlbumInbox(lm : DefaultListModel<AlbumCover>) : JList<AlbumCover>(lm) {
         selectionBackground = Color.BLACK
         selectionForeground = Color.ORANGE
 
-        // DnD, a complex beast.
+        // DnD, a complex beast. We choose the absolute easiest route.
         dragEnabled = true
         // And a singleton hack to go with it
         AlbumInboxSelection.setListComp(this)
+
+        AlbumCoverChangeNotificator.registerListener { repaint() }
     }
 
     private fun makeCellRenderer() : ListCellRenderer<AlbumCover> {

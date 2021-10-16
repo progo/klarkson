@@ -89,4 +89,10 @@ class MPDClientTest {
         mpd.close()
         println("----------------------------------")
     }
+
+    @Test
+    fun testLastFm() {
+//        downloadCover("Pink Floyd", "The Dark Side of the Moon")
+//        downloadCover("Pink Floyd", "A Saucerful of Secrets")
+    }
 }
