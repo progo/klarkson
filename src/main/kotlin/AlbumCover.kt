@@ -21,7 +21,7 @@ data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
     var x: Int = 0
     var y: Int = 0
     private val color: Color = Color(album.hashCode())
-    var cover: BufferedImage = AlbumCoverImageService.coverLoadingImage as BufferedImage
+    var cover: BufferedImage = AlbumCoverImageService.coverLoadingImage
     var loadingState: AlbumCoverLoadingStatus = AlbumCoverLoadingStatus.LOADING
 
     companion object {
@@ -78,11 +78,10 @@ enum class AlbumCoverLoadingStatus { LOADING, MISSING, LOADED }
 
 
 object AlbumCoverImageService {
-    // private val iconCache = HashMap<Triple<AlbumCover, Int, Boolean>, Image>()
     // nested 2-depth
-    private val iconCache = HashMap<AlbumCover, HashMap<Pair<Int, Boolean>, Image>>()
-    private val recordTemplateImage : BufferedImage = ImageIO.read(this.javaClass.classLoader.getResource("img/Record_Orange_400px.png")) as BufferedImage
-    val coverLoadingImage: Image = recordTemplateImage
+    private val iconCache = HashMap<AlbumCover, HashMap<Pair<Int, Boolean>, BufferedImage>>()
+    private val recordTemplateImage : BufferedImage = ImageIO.read(this.javaClass.classLoader.getResource("img/Record_Orange_200px.png"))
+    val coverLoadingImage: BufferedImage = makeLoadingImage()
 
     private var cacheMisses = 0
     private var cacheAll = 0
@@ -106,7 +105,7 @@ object AlbumCoverImageService {
         */
 
         cacheAll++
-        val coverimg = ac.cover as Image
+        val coverimg = ac.cover
         val level2key = Pair(sz, highlight)
 
         // First we dig through the level 1
@@ -118,15 +117,20 @@ object AlbumCoverImageService {
         val level2map = iconCache[ac] as HashMap
 
         if (level2key !in level2map) {
-            var value: Image = coverimg
+            var value: BufferedImage = coverimg
 
             // Resize
             if (sz > 0) {
-                value = value.getScaledInstance(sz, sz, Image.SCALE_SMOOTH)
+                val scaled = value.getScaledInstance(sz, sz, Image.SCALE_SMOOTH)
+                value = BufferedImage(sz, sz, BufferedImage.TYPE_INT_ARGB).apply {
+                    val g = graphics
+                    g.drawImage(scaled, 0, 0, null)
+                    g.dispose()
+                }
             }
 
             if (highlight) {
-                value = RescaleOp(1.4f, 0f, null).filter(value as BufferedImage, null)
+                value = RescaleOp(1.4f, 0f, null).filter(value, null)
             }
 
             level2map[level2key] = value
@@ -165,18 +169,37 @@ object AlbumCoverImageService {
         return bi
     }
 
+    private fun makeLoadingImage() : BufferedImage {
+        return BufferedImage(
+            recordTemplateImage.width,
+            recordTemplateImage.height,
+            BufferedImage.TYPE_INT_ARGB
+        ).apply {
+            val g = graphics
+            g.drawImage(recordTemplateImage, 0, 0, null)
+
+            g.color = Color.BLACK
+            g.fillRoundRect(20, 20, 75, 15, 5, 5)
+            g.color = Color.WHITE
+            g.drawString("Loading...", 28, 32)
+            g.dispose()
+        }
+    }
+
     fun reportCacheStatistics() : String {
         val recursiveSize = iconCache.map { it.value.size }.sum()
 
-//        val totalPixels = iconCache.map {
-//            it.value.map {
-//                val img = it.value as Image
-//                img.height * img.width
-//            }.sum()
-//        }.sum()
+        val totalBytes = iconCache.map {
+            it.value.map {
+                val img = it.value as BufferedImage
+                img.colorModel.pixelSize / 8.0 * img.height * img.width
+            }.sum()
+        }.sum()
 
         return buildString {
-            append("Cache size = ${iconCache.size} covers and $recursiveSize cached bitmaps.\n")
+            append("Cache size = ${iconCache.size} covers " +
+                    "and $recursiveSize cached bitmaps, " +
+                    "totalling ${totalBytes/1024/1024} MiB.\n")
             append("Cache hits = ${cacheAll - cacheMisses}, misses = $cacheMisses.\n")
 
             // very verbose...
