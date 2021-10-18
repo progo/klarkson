@@ -185,21 +185,20 @@ object AlbumCoverImageService {
         g.clip = labelClip
         g.drawString(ac.album.artist, labelX + 2 + rand(4), labelY + 12)
 
-        val s = ac.album.album
-        val x = JTextArea(s).apply {
+        JTextArea(ac.album.album).apply {
             lineWrap = true
             wrapStyleWord = true
             setBounds(labelX, labelY + 12, labelW, labelH - 12)
             foreground = g.color
             background = Color(0,0,0,0)
             font = g.font
+            val g2 = g.create(labelX, labelY + 12, labelW, labelH - 12)
+            // g2.clip = labelClip
+            paint(g2)
+            g2.dispose()
         }
-        val g2 = g.create(labelX, labelY + 12, labelW, labelH - 12)
-        // g2.clip = labelClip
-        x.paint(g2)
 
         g.dispose()
-        g2.dispose()
         return bi
     }
 

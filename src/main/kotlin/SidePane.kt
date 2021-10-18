@@ -46,16 +46,21 @@ class SidePane(
             add(toolbar, BorderLayout.SOUTH)
         }
 
+        val tabbpane = JTabbedPane()
         val albumInboxList = DefaultListModel<AlbumCover>()
         val albumInboxScrolled = JScrollPane(AlbumInbox(albumInboxList))
-        // for (a in createAlbumCovers(100)) { albumInboxList.addElement(a) }
+
+        tabbpane.addTab("Inbox", albumInboxScrolled)
+        tabbpane.addTab("Album", JLabel("album track list"))
+
         for (a in MpdServer.getAlbums()) { albumInboxList.addElement(a.getCover()) }
 
         val inner = JPanel().apply {
             layout = BorderLayout()
 
             add(albumshowAndPlayback, BorderLayout.NORTH)
-            add(albumInboxScrolled, BorderLayout.CENTER)
+            // add(albumInboxScrolled, BorderLayout.CENTER)
+            add(tabbpane, BorderLayout.CENTER)
             // add(toolbar, BorderLayout.SOUTH)
         }
 
