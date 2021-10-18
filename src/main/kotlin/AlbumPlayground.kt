@@ -600,6 +600,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
      */
     private fun endPan(me: MouseEvent) {
         viewportPan = false
+        requestFocusInWindow()
     }
 
     private fun duringPan(me: MouseEvent) {
@@ -705,6 +706,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
     override fun mouseEntered(p0: MouseEvent?) { }
     override fun mouseExited(p0: MouseEvent?) { }
     override fun mouseWheelMoved(mwe: MouseWheelEvent) {
+        requestFocusInWindow()
         if (mwe.wheelRotation < 0) {
             zoomIn(mwe.x, mwe.y)
         } else {
@@ -737,6 +739,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         // repaint()
 
         AlbumInboxSelection.deleteSelected()
+        requestFocusInWindow()
     }
 
     private fun finishDragNDrop() {
