@@ -232,7 +232,7 @@ object AlbumCoverImageService {
         return buildString {
             append("Cache size = ${iconCache.size} covers " +
                     "and $recursiveSize cached bitmaps, " +
-                    "totalling ${totalBytes/1024/1024} MiB.\n")
+                    "totalling ${(totalBytes/1024/1024).format(2)} MiB.\n")
             append("Cache hits = ${cacheAll - cacheMisses}, misses = $cacheMisses.\n")
 
             // very verbose...
