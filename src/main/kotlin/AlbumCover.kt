@@ -1,9 +1,6 @@
 package klarksonmainframe
 
-import java.awt.AlphaComposite
-import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.Image
+import java.awt.*
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Rectangle2D
@@ -15,12 +12,14 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
+import javax.swing.JTextArea
+import kotlin.random.Random
 
 
 data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
     var x: Int = 0
     var y: Int = 0
-    private val color: Color = Color(album.hashCode())
+    val color: Color = Color(album.hashCode())
     var cover: BufferedImage = AlbumCoverImageService.coverLoadingImage
     var loadingState: AlbumCoverLoadingStatus = AlbumCoverLoadingStatus.LOADING
 
@@ -46,7 +45,7 @@ data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
             cover = ImageIO.read(file) as BufferedImage
             loadingState = AlbumCoverLoadingStatus.LOADED
         } catch (e : NullPointerException) {
-            cover = AlbumCoverImageService.makePlaceholder(color) as BufferedImage
+            cover = AlbumCoverImageService.makePlaceholder(this) as BufferedImage
             loadingState = AlbumCoverLoadingStatus.MISSING
         }
     }
@@ -144,7 +143,7 @@ object AlbumCoverImageService {
         return ImageIcon(get(ac, sz, highlight))
     }
 
-    fun makePlaceholder(color: Color) : Image {
+    fun makePlaceholder(ac: AlbumCover) : Image {
         // println("I don't run very often, do I? $sz, $color")
         val w = recordTemplateImage.width
         val h = recordTemplateImage.height
@@ -162,10 +161,45 @@ object AlbumCoverImageService {
 
         g.clip = shapecomp
         g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.90f)
-        g.color = color
+        g.color = ac.color
         g.fillRoundRect(0, 0, w, h, 30, 30)
 
+        // Little white label
+        fun rand(n : Int) = Random.nextInt(n/2) - n/2
+        val labelX = 28 + rand(20)
+        val labelY = 28 + rand(28)
+        val labelW = 120
+        val labelH = 60
+        val labelClip = Rectangle2D.Double(labelX.toDouble(), labelY.toDouble(), labelW.toDouble(), labelH.toDouble())
+        g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f)
+        g.clip = null
+        g.color = Color(220, 220, 220)
+        g.fillRoundRect(labelX, labelY, labelW, labelH, 10, 10)
+        g.color = Color(160, 160, 160)
+        for (i in 1..4) {
+            g.drawLine(labelX, labelY + 2 + i * 11, labelX + labelW - 1, labelY + 2 + i * 11)
+        }
+        g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)
+        g.font = Font("Courier", Font.PLAIN, 9)
+        g.color = Color.BLACK
+        g.clip = labelClip
+        g.drawString(ac.album.artist, labelX + 2 + rand(4), labelY + 12)
+
+        val s = ac.album.album
+        val x = JTextArea(s).apply {
+            lineWrap = true
+            wrapStyleWord = true
+            setBounds(labelX, labelY + 12, labelW, labelH - 12)
+            foreground = g.color
+            background = Color(0,0,0,0)
+            font = g.font
+        }
+        val g2 = g.create(labelX, labelY + 12, labelW, labelH - 12)
+        // g2.clip = labelClip
+        x.paint(g2)
+
         g.dispose()
+        g2.dispose()
         return bi
     }
 
