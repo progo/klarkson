@@ -28,7 +28,7 @@ enum class Direction {
 /**
  * Track selected albums and offers notifications to listeners.
  */
-class AlbumSelection : Iterable<AlbumCover> {
+object AlbumSelection : Iterable<AlbumCover> {
     private val selection : MutableSet<AlbumCover> = HashSet()
     private val listeners : MutableList<(AlbumSelection) -> Unit> = ArrayList()
 
@@ -191,7 +191,7 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 //    return File("/home/progo/koodi/mpyd/data/covers/").walk().shuffled().take(count).map(::loadCover)
 //}
 
-class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, DropTargetListener {
+class AlbumPlayground(): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, DropTargetListener {
     private val albums = AlbumOrganizer()
 
     init {
@@ -292,7 +292,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
                 null
             )
 
-            if (albumcover in albumSelection) {
+            if (albumcover in AlbumSelection) {
                 g.color = Color.BLACK
                 g.stroke = BasicStroke(3F)
                 g.drawRect(xp, yp, coverside, coverside)
@@ -348,7 +348,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
                 // "Drag mouse1 to move covers. " +
                 // "Drag mouse2 to pan. " +
                 "Viewport: ($viewportX, $viewportY). " +
-                "Selected covers: ${albumSelection.size()} " +
+                "Selected covers: ${AlbumSelection.size()} " +
                 "Frame took ${"%.2f".format(paint_time_ms)}ms", 0, 10)
     }
 
@@ -356,15 +356,15 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
      * If we have one album selected then we will allow this navigation
      */
     private fun findAdjacentAlbumCover(dir: Direction) {
-        if (albumSelection.size() != 1)
+        if (AlbumSelection.size() != 1)
             return
 
-        val selected = albumSelection.first()
+        val selected = AlbumSelection.first()
         // println("Move $selected")
 
         val alb = albums.getAlbumInTheDirectionOf(Point(selected.x, selected.y), dir)
         if (alb != null) {
-            albumSelection.replace(setOf(alb))
+            AlbumSelection.replace(setOf(alb))
 
             val x = alb.x
             val y = alb.y
@@ -482,7 +482,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         )
 
         val albs = albums.allAlbumsWithinRegion(physical2virtual(a), physical2virtual(b))
-        albumSelection.replace(albs)
+        AlbumSelection.replace(albs)
     }
 
     private fun endLasso() {
@@ -496,7 +496,7 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
     }
 
     private fun clearSelection() {
-        albumSelection.clear()
+        AlbumSelection.clear()
     }
 
     /**
@@ -505,15 +505,15 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
      * all selected so that user takes it from there.
      */
     private fun bringSelectedCoversTogether() {
-        if (albumSelection.size() < 2)  return
+        if (AlbumSelection.size() < 2)  return
 
-        val rows : Int = sqrt(albumSelection.size().toDouble()).roundToInt()
-        val cols : Int = albumSelection.size() / rows
+        val rows : Int = sqrt(AlbumSelection.size().toDouble()).roundToInt()
+        val cols : Int = AlbumSelection.size() / rows
 
         var x = 0
         var y = -1
 
-        for (album in albumSelection) {
+        for (album in AlbumSelection) {
             album.x = viewportX + x * (ALBUM_COVER_SIZE + Random.nextInt(2, 10))
             album.y = viewportY + y * (ALBUM_COVER_SIZE + Random.nextInt(2, 10))
 
@@ -536,8 +536,8 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
         val alb = albums.getByLocation(x, y) ?: return;
 
         coversOnTheMove.clear()
-        if (alb in albumSelection) {
-            coversOnTheMove.addAll(albumSelection)
+        if (alb in AlbumSelection) {
+            coversOnTheMove.addAll(AlbumSelection)
         } else {
             coversOnTheMove.add(alb)
         }
@@ -637,10 +637,10 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
             return
         }
         if (me.isControlDown) {
-            albumSelection.add(alb)
+            AlbumSelection.add(alb)
         }
         else {
-            albumSelection.replace(setOf(alb))
+            AlbumSelection.replace(setOf(alb))
         }
     }
 
@@ -684,10 +684,10 @@ class AlbumPlayground(private val albumSelection: AlbumSelection): JPanel(), Key
      * Center around selected album
      */
     private fun centerAroundSelected() {
-        if (albumSelection.size() != 1)
+        if (AlbumSelection.size() != 1)
             return
 
-        val alb = albumSelection.first()
+        val alb = AlbumSelection.first()
         centerAroundPoint(alb.x, alb.y)
     }
 

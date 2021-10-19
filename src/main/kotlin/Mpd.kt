@@ -11,4 +11,15 @@ object MpdServer {
         val songs = mpd.songSearcher.search(SongSearcher.ScopeType.ALBUM, testSearch)
         return collectIntoAlbums(mpd, songs)
     }
+
+    fun addTracks(ts : Iterable<Song>, play : Boolean = false) {
+        val playlist = mpd.playlist
+        val tracks = playlist.songList.size
+        ts.forEach { mpd.playlist.addSong(it.file) }
+
+//        if (play) {
+//            val f = ts.firstOrNull() ?: return
+//            mpd.player.playSong()
+//        }
+    }
 }

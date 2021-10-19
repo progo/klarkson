@@ -32,7 +32,7 @@ data class Album(
         return dig.fold("") { str, it -> str + "%02x".format(it) }
     }
 
-    fun getCover() : AlbumCover {
+    fun createCover() : AlbumCover {
         return AlbumCover(this)
     }
 }

@@ -4,7 +4,6 @@ import java.awt.*
 import javax.swing.*
 
 class SidePane(
-    albumSelection: AlbumSelection,
     menubar: JMenuBar,
     toolbar: JToolBar
 ) : JPanel() {
@@ -15,6 +14,8 @@ class SidePane(
         override fun getMaximumSize(): Dimension = Dimension(this@SidePane.width, this@SidePane.width)
         override fun getPreferredSize(): Dimension = Dimension(this@SidePane.width, this@SidePane.width)
     }
+
+    private val tracksLM = DefaultListModel<Song> ()
 
     init {
         txtArtist.font = txtArtist.font.deriveFont(20F)
@@ -49,11 +50,12 @@ class SidePane(
         val tabbpane = JTabbedPane()
         val albumInboxList = DefaultListModel<AlbumCover>()
         val albumInboxScrolled = JScrollPane(AlbumInbox(albumInboxList))
+        val trackst = JScrollPane(TrackList(tracksLM))
 
         tabbpane.addTab("Inbox", albumInboxScrolled)
-        tabbpane.addTab("Album", JLabel("album track list"))
+        tabbpane.addTab("Tracks", trackst)
 
-        for (a in MpdServer.getAlbums()) { albumInboxList.addElement(a.getCover()) }
+        for (a in MpdServer.getAlbums()) { albumInboxList.addElement(a.createCover()) }
 
         val inner = JPanel().apply {
             layout = BorderLayout()
@@ -67,7 +69,7 @@ class SidePane(
         add(menubar, BorderLayout.NORTH)
         add(inner, BorderLayout.CENTER)
 
-        albumSelection.registerListener(::onAlbumSelection)
+        AlbumSelection.registerListener(::onAlbumSelection)
     }
 
     /**
@@ -79,6 +81,14 @@ class SidePane(
             1 -> showAlbum(ass.first())
             else -> showAlbumCount(ass)
         }
+
+        updateTracks(ass)
+    }
+
+    private fun updateTracks(albumcoverss: Iterable<AlbumCover>) {
+        val tracks = albumcoverss.flatMap { ac -> ac.album.songs }
+        tracksLM.clear()
+        tracks.forEach { tracksLM.addElement(it) }
     }
 
     private fun showAlbumCount(ass : AlbumSelection) {

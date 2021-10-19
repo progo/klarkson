@@ -32,6 +32,19 @@ class KlarksonFrame : JFrame() {
 
             add(JButton().apply {
                 icon = ImageIcon(getResource("gf24/playback_play.png"))
+                toolTipText = "Play album"
+                addActionListener {
+                    MpdServer.addTracks(AlbumSelection.flatMap { ac : AlbumCover -> ac.album.songs },
+                        play = true)
+                }
+            })
+
+            add(JButton().apply {
+                icon = ImageIcon(getResource("gf24/playback_play_plus.png"))
+                toolTipText = "Add album to playlist"
+                addActionListener {
+                    MpdServer.addTracks(AlbumSelection.flatMap { ac : AlbumCover -> ac.album.songs })
+                }
             })
 
             add(JButton().apply {
@@ -50,14 +63,16 @@ class KlarksonFrame : JFrame() {
             foreground = Color.WHITE
             isOpaque = true
 
-            val file = JMenu("Klarkson")
-            file.mnemonic = KeyEvent.VK_K
-            file.icon = ImageIcon(getResource("gf16/burst.png"))
+            val file = JMenu("Klarkson").apply {
+                mnemonic = KeyEvent.VK_K
+                icon = ImageIcon(getResource("gf16/burst.png"))
+            }
 
-            val eMenuItem = JMenuItem("Exit")
-            eMenuItem.mnemonic = KeyEvent.VK_X
-            eMenuItem.toolTipText = "Exit application"
-            eMenuItem.addActionListener { exitProcess(0) }
+            val eMenuItem = JMenuItem("Exit").apply {
+                mnemonic = KeyEvent.VK_X
+                toolTipText = "Exit application"
+                addActionListener { exitProcess(0) }
+            }
 
             file.add(eMenuItem)
             add(file)
@@ -94,13 +109,11 @@ class KlarksonFrame : JFrame() {
     }
 
     private fun createUI() {
-        val albumSelection = AlbumSelection()
         val sidepane = SidePane(
-            albumSelection = albumSelection,
             menubar = createMenuBar(),
             toolbar = createToolbar()
         )
-        val playground = AlbumPlayground(albumSelection = albumSelection)
+        val playground = AlbumPlayground()
 
         sidepane.minimumSize = Dimension(200, 200)
         playground.minimumSize = Dimension(400, 400)
