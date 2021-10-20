@@ -21,7 +21,7 @@ data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
     var y: Int = 0
     val color: Color = Color(album.hashCode())
     var cover: BufferedImage = AlbumCoverImageService.coverLoadingImage
-    var loadingState: AlbumCoverLoadingStatus = AlbumCoverLoadingStatus.LOADING
+    private var loadingState: AlbumCoverLoadingStatus = AlbumCoverLoadingStatus.LOADING
 
     companion object {
         private val covergettingThreadPool : ExecutorService = Executors.newFixedThreadPool(2)
@@ -224,9 +224,9 @@ object AlbumCoverImageService {
     fun reportCacheStatistics() : String {
         val recursiveSize = iconCache.map { it.value.size }.sum()
 
-        val totalBytes = iconCache.map {
-            it.value.map {
-                val img = it.value as BufferedImage
+        val totalBytes = iconCache.map { lev1entry ->
+            lev1entry.value.map { lev2entry ->
+                val img = lev2entry.value
                 img.colorModel.pixelSize / 8.0 * img.height * img.width
             }.sum()
         }.sum()
