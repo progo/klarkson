@@ -79,7 +79,7 @@ enum class AlbumCoverLoadingStatus { LOADING, MISSING, LOADED }
 object AlbumCoverImageService {
     // nested 2-depth
     private val iconCache = HashMap<AlbumCover, HashMap<Pair<Int, Boolean>, BufferedImage>>()
-    private val recordTemplateImage : BufferedImage = ImageIO.read(this.javaClass.classLoader.getResource("img/Record_Orange_200px.png"))
+    private val recordTemplateImage : BufferedImage = ImageIO.read(this.javaClass.classLoader.getResource("img/Record_Orange_400px.png"))
     val coverLoadingImage: BufferedImage = makeLoadingImage()
 
     private var cacheMisses = 0
@@ -165,34 +165,36 @@ object AlbumCoverImageService {
         g.fillRoundRect(0, 0, w, h, 30, 30)
 
         // Little white label
-        fun rand(n : Int) = Random.nextInt(n/2) - n/2
-        val labelX = 28 + rand(20)
-        val labelY = 28 + rand(28)
-        val labelW = 120
-        val labelH = 60
+        val labelX = 28 + Random.nextInt(0, 60)
+        val labelY = 28 + Random.nextInt(0, 120)
+        val labelW = 220
+        val labelH = 120
         val labelClip = Rectangle2D.Double(labelX.toDouble(), labelY.toDouble(), labelW.toDouble(), labelH.toDouble())
         g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f)
         g.clip = null
         g.color = Color(220, 220, 220)
-        g.fillRoundRect(labelX, labelY, labelW, labelH, 10, 10)
+        g.fillRoundRect(labelX, labelY, labelW, labelH, 14, 14)
         g.color = Color(160, 160, 160)
-        for (i in 1..4) {
-            g.drawLine(labelX, labelY + 2 + i * 11, labelX + labelW - 1, labelY + 2 + i * 11)
+        val lineheight = 13
+        for (i in 1..8) {
+            g.drawLine(labelX, labelY + 2 + i * lineheight, labelX + labelW - 1, labelY + 2 + i * lineheight)
         }
         g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)
-        g.font = Font("Courier", Font.PLAIN, 9)
+        g.font = Font("Courier", Font.BOLD, 11)
         g.color = Color.BLACK
         g.clip = labelClip
-        g.drawString(ac.album.artist, labelX + 2 + rand(4), labelY + 12)
+        g.drawString(ac.album.artist, labelX + 2, labelY + 12)
 
+        g.font = Font("Courier", Font.PLAIN, 11)
         JTextArea(ac.album.album).apply {
+            val topmargin = 14
             lineWrap = true
             wrapStyleWord = true
-            setBounds(labelX, labelY + 12, labelW, labelH - 12)
+            setBounds(labelX + 2, labelY + topmargin, labelW, labelH - topmargin)
             foreground = g.color
             background = Color(0,0,0,0)
             font = g.font
-            val g2 = g.create(labelX, labelY + 12, labelW, labelH - 12)
+            val g2 = g.create(labelX + 2, labelY + topmargin, labelW, labelH - topmargin)
             // g2.clip = labelClip
             paint(g2)
             g2.dispose()
