@@ -70,6 +70,7 @@ class SidePane(
         add(inner, BorderLayout.CENTER)
 
         AlbumSelection.registerListener(::onAlbumSelection)
+        AlbumCoverChangeNotificator.registerListener { showAlbum(shownCover) }
     }
 
     /**
@@ -116,7 +117,7 @@ class SidePane(
     private fun showCover(c: AlbumCover?) {
         val coverImage = c?.cover
         if (coverImage != null) {
-            txtCoverImage.icon = AlbumCoverImageService.getAsIcon(c, sz = width)
+            txtCoverImage.icon = ImageIcon(coverImage)
         } else {
             txtCoverImage.icon = null
         }

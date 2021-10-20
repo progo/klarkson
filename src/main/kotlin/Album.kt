@@ -29,7 +29,11 @@ data class Album(
         val msg = "$artist\n$album".lowercase().toByteArray()
         val md = MessageDigest.getInstance("SHA-256")
         val dig = md.digest(msg)
-        return dig.fold("") { str, it -> str + "%02x".format(it) }
+
+        val hrdigest = Regex("[^a-z-]").replace("$artist-$album".lowercase(), "")
+        val hexdigest = dig.fold("") { str, it -> str + "%02x".format(it) }
+
+        return "$hexdigest-$hrdigest"
     }
 
     fun createCover() : AlbumCover {

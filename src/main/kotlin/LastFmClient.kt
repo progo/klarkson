@@ -1,13 +1,10 @@
 package klarksonmainframe
 
 import kotlinx.serialization.json.*
-import java.io.File
-import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
 const val LAST_FM_API_ENDPOINT = "https://ws.audioscrobbler.com/2.0/"
-const val COVER_DIRECTORY = "/home/progo/.cache/albumcovers/"
 
 // enum class LastFmCoverSize { small, medium, large, extralarge, mega }
 typealias Uri = String
@@ -103,49 +100,4 @@ object LastFmClient {
             else -> candidates["small"]
         }
     }
-}
-
-/**
- * foo
- */
-fun getOrDownloadCover(album: Album) : String? {
-    val path = COVER_DIRECTORY + album.readableHash()
-
-    if (File(path).exists()) {
-        return path
-    }
-
-    val cover = downloadCover(album)
-
-    // Download might have failed for whatever reason.
-    // here [cover] either (== path) or (== null)
-
-    if (cover == null) {
-        // Touch an empty file. Zero-sized files are an easy flag and indicator
-        // that we don't constantly be connecting to the server.
-        File(path).createNewFile()
-    }
-
-    return cover
-}
-
-fun downloadCover(album: Album) : String? {
-    val uri = LastFmClient.getAlbumCoverUri(album.artist, album.album)
-
-    if (uri == null || uri == "") {
-        println("Did not get cover for (${album.artist}, ${album.album})")
-        return null
-    }
-
-    println("Downloading cover for (${album.artist}, ${album.album})")
-
-    val path = COVER_DIRECTORY + album.readableHash()
-
-    URL(uri).openStream().use { input ->
-        FileOutputStream(File(path)).use { output ->
-            input.copyTo(output)
-        }
-    }
-
-    return path
 }

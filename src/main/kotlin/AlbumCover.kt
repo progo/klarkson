@@ -29,24 +29,37 @@ data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
 
     init {
         covergettingThreadPool.execute {
-            initCover()
-            AlbumCoverChangeNotificator.notifyListeners(listOf(this@AlbumCover))
+            loadCover()
         }
     }
 
     // TODO: this here plus the query stuff we have to refactor so that down
     // the pipeline we get information about state and perhaps other things.
-    private fun initCover() {
-        assert(loadingState == AlbumCoverLoadingStatus.LOADING)
-        val path = getOrDownloadCover(album) ?: return
-        val file = File(path)
+    private fun loadCover() {
+        // assert(loadingState == AlbumCoverLoadingStatus.LOADING)
 
         try {
-            cover = ImageIO.read(file) as BufferedImage
+            val path = getOrDownloadCover(album)!!
+            cover = ImageIO.read(File(path)) as BufferedImage
             loadingState = AlbumCoverLoadingStatus.LOADED
         } catch (e : NullPointerException) {
             cover = AlbumCoverImageService.makePlaceholder(this) as BufferedImage
             loadingState = AlbumCoverLoadingStatus.MISSING
+        }
+        AlbumCoverChangeNotificator.notifyListeners(listOf(this@AlbumCover))
+    }
+
+    fun setCoverImageAsync(image : File) {
+        covergettingThreadPool.execute {
+            persistCover(album, image)
+            loadCover()
+        }
+    }
+
+    fun setCoverImageAsync(imageUri : Uri) {
+        covergettingThreadPool.execute {
+            downloadCover(album, directUri = imageUri)
+            loadCover()
         }
     }
 

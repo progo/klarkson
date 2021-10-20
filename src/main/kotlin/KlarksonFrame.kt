@@ -7,10 +7,13 @@ import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import javax.imageio.ImageIO
 import javax.swing.*
+import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.plaf.basic.BasicSplitPaneDivider
 import javax.swing.plaf.basic.BasicSplitPaneUI
 import kotlin.system.exitProcess
+
 
 class KlarksonFrame : JFrame() {
     private lateinit var splitpane : JSplitPane
@@ -63,19 +66,62 @@ class KlarksonFrame : JFrame() {
             foreground = Color.WHITE
             isOpaque = true
 
-            val file = JMenu("Klarkson").apply {
+            add(JMenu("Klarkson").apply {
                 mnemonic = KeyEvent.VK_K
                 icon = ImageIcon(getResource("gf16/burst.png"))
-            }
 
-            val eMenuItem = JMenuItem("Exit").apply {
-                mnemonic = KeyEvent.VK_X
-                toolTipText = "Exit application"
-                addActionListener { exitProcess(0) }
-            }
+                add(JMenuItem("Exit").apply {
+                    mnemonic = KeyEvent.VK_X
+                    toolTipText = "Exit application"
+                    addActionListener { exitProcess(0) }
+                })
+            })
 
-            file.add(eMenuItem)
-            add(file)
+
+            add(JMenu("Cover").apply {
+                mnemonic = KeyEvent.VK_C
+                icon = ImageIcon(getResource("gf16/picture.png"))
+
+                add(JMenuItem("By URL...").apply {
+                    mnemonic = KeyEvent.VK_U
+                    addActionListener {
+                        val uri = JOptionPane.showInputDialog(
+                            this@KlarksonFrame,
+                            "Paste URL to a cover image.",
+                            "Cover URL",
+                            JOptionPane.PLAIN_MESSAGE,
+                            null,
+                            null,
+                            ""
+                        ) as Uri
+
+                        if (uri == "") return@addActionListener
+
+                        val albcover = AlbumSelection.firstOrNull() ?: return@addActionListener
+                        albcover.setCoverImageAsync(uri)
+                    }
+                })
+
+                add(JMenuItem("Select file...").apply {
+                    mnemonic = KeyEvent.VK_F
+                    addActionListener {
+                        val albcover = AlbumSelection.firstOrNull() ?: return@addActionListener
+
+                        val c = JFileChooser().apply {
+                            val imageFilter = FileNameExtensionFilter("Image files", *ImageIO.getReaderFileSuffixes())
+                            addChoosableFileFilter(imageFilter)
+                            isAcceptAllFileFilterUsed = false
+                        }
+                        val ret = c.showOpenDialog(this@KlarksonFrame)
+
+                        if (ret == JFileChooser.APPROVE_OPTION) {
+                            val chosenFile = c.selectedFile
+                            albcover.setCoverImageAsync(chosenFile)
+                        }
+                    }
+                })
+            })
+
         }
     }
 
