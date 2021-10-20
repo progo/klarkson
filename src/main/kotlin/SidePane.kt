@@ -18,11 +18,11 @@ class SidePane(
     private val tracksLM = DefaultListModel<Song> ()
 
     init {
-        txtArtist.font = txtArtist.font.deriveFont(20F)
-        txtArtist.foreground = Color.ORANGE
+        txtAlbum.font = txtArtist.font.deriveFont(20F)
+        txtAlbum.foreground = Color.ORANGE
 
-        txtAlbum.foreground = Color.YELLOW
-        txtAlbum.background = Color.BLACK
+        txtArtist.foreground = Color.YELLOW
+        txtArtist.background = Color.BLACK
     }
 
     private var shownCover : AlbumCover? = null
@@ -37,8 +37,8 @@ class SidePane(
             layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
 
             add(txtCoverImage)
-            add(txtArtist)
             add(txtAlbum)
+            add(txtArtist)
         }
 
         val albumshowAndPlayback = JPanel().apply {
