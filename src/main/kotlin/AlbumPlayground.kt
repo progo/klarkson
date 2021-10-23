@@ -276,21 +276,15 @@ class AlbumPlayground(): JPanel(), KeyListener, MouseListener, MouseMotionListen
         // looks good -- 5000 blank albums or 850 pictured albums poses no sweat
 
         val coverside = (viewportScaleFactor * ALBUM_COVER_SIZE).toInt()
+
+        if (highlight) {
+            g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)
+        }
+
         for (albumcover in albums) {
             val (xp, yp) = virtual2physical(albumcover.x, albumcover.y) - (coverside / 2)
 
-            g.drawImage(
-                // OBS. Technically cache is not needed here to ensure smooth operation.
-                // We just need a temporary copies of brightened images and the cache
-                // offers a handy storage.
-                // This is why we won't be putting all covers through the cache.
-                if (highlight) AlbumCoverImageService.get(albumcover, 0, true) else albumcover.cover,
-                xp,
-                yp,
-                coverside,
-                coverside,
-                null
-            )
+            g.drawImage(albumcover.cover, xp, yp, coverside, coverside, null)
 
             if (albumcover in AlbumSelection) {
                 g.color = Color.BLACK
@@ -298,6 +292,9 @@ class AlbumPlayground(): JPanel(), KeyListener, MouseListener, MouseMotionListen
                 g.drawRect(xp, yp, coverside, coverside)
             }
         }
+
+        // Restore
+        g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER)
     }
 
     private fun lassoRectangle(a: Point, b: Point) : Pair<Point, Point> {

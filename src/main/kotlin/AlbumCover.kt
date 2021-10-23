@@ -91,7 +91,7 @@ enum class AlbumCoverLoadingStatus { LOADING, MISSING, LOADED }
 
 object AlbumCoverImageService {
     // nested 2-depth
-    private val iconCache = HashMap<AlbumCover, HashMap<Pair<Int, Boolean>, BufferedImage>>()
+    private val iconCache = HashMap<AlbumCover, HashMap<Int, BufferedImage>>()
     val recordImage : BufferedImage =
         ImageIO.read(this.javaClass.classLoader.getResource("img/Record_Orange_400px.png"))
     val coverLoadingImage: BufferedImage = makeLoadingImage()
@@ -108,7 +108,7 @@ object AlbumCoverImageService {
         }
     }
 
-    fun get(ac: AlbumCover, sz: Int = 0, highlight: Boolean = false): Image {
+    fun get(ac: AlbumCover, sz: Int = 0): Image {
         /*
         Cache scheme:
             level 1: key is [ac: AlbumCover], maps to a level 2 map
@@ -120,7 +120,7 @@ object AlbumCoverImageService {
 
         cacheAll++
         val coverimg = ac.cover
-        val level2key = Pair(sz, highlight)
+        val level2key = sz
 
         // First we dig through the level 1
         if (ac !in iconCache) {
@@ -143,10 +143,6 @@ object AlbumCoverImageService {
                 }
             }
 
-            if (highlight) {
-                value = RescaleOp(1.4f, 0f, null).filter(value, null)
-            }
-
             level2map[level2key] = value
             cacheMisses++
         }
@@ -154,8 +150,8 @@ object AlbumCoverImageService {
         return level2map[level2key] as Image
     }
 
-    fun getAsIcon(ac: AlbumCover, sz : Int = 0, highlight: Boolean = false): ImageIcon {
-        return ImageIcon(get(ac, sz, highlight))
+    fun getAsIcon(ac: AlbumCover, sz : Int = 0): ImageIcon {
+        return ImageIcon(get(ac, sz))
     }
 
     fun makePlaceholder(ac: AlbumCover) : Image {
