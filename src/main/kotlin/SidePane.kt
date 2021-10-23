@@ -2,6 +2,7 @@ package klarksonmainframe
 
 import java.awt.*
 import java.awt.image.BufferedImage
+import java.lang.Math.abs
 import javax.swing.*
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -173,10 +174,23 @@ private fun pileCovers(size: Int, covers: List<AlbumCover>) : ImageIcon {
     val g = b.graphics as Graphics2D
     val sz = size / 2
 
-    for (cover in covers.take(10)) {
-        val randX = (cover.hashCode() % size).coerceIn(-sz/8, size - sz/2)
-        val randY = (cover.cover.hashCode() % size).coerceIn(-sz/8, size - sz/2)
-        g.drawImage(cover.cover, randX, randY, sz, sz, null)
+    var i = 0
+    println("-------------------------------------------------")
+
+    // split the mini area into 4x4 grid
+    for (cover in covers.take(12)) {
+        if (i < 0) i = kotlin.math.abs(cover.hashCode() % 16)
+
+        val row = (i / 4).toInt()
+        val col = i % 4
+        println ("$i -> ($col, $row)")
+
+//        val randX = (cover.hashCode() % size).coerceIn(-sz/8, size - sz/2)
+//        val randY = (cover.cover.hashCode() % size).coerceIn(-sz/8, size - sz/2)
+        val x = col * size / 4
+        val y = row * size / 4
+        g.drawImage(cover.cover, x, y, sz, sz, null)
+        i++
     }
 
     g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f)
