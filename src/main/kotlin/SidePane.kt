@@ -93,7 +93,7 @@ class SidePane(
     }
 
     private fun showAlbumCount(ass : AlbumSelection) {
-        txtCoverImage.icon = null
+        showCover(null)
         txtArtist.text = "${ass.size()} selected"
         txtAlbum.text = " "
     }
@@ -105,22 +105,24 @@ class SidePane(
             val a = c.album
             txtArtist.text = a.artist
             txtAlbum.text = a.album
-            showCover(c)
         }
         else {
             txtAlbum.text = " "
             txtArtist.text = " "
-            txtCoverImage.icon = null
         }
+        showCover(c)
     }
 
+    /**
+     * If [c] is null show a placeholder image, else the cover.
+     */
     private fun showCover(c: AlbumCover?) {
-        val coverImage = c?.cover
-        if (coverImage != null) {
-            txtCoverImage.icon = ImageIcon(coverImage)
-        } else {
-            txtCoverImage.icon = null
-        }
+        val image = c?.cover ?: AlbumCoverImageService.recordDecoration
+        txtCoverImage.icon = ImageIcon(image.getScaledInstance(
+            100.coerceAtLeast(txtCoverImage.width),
+            100.coerceAtLeast(txtCoverImage.height),
+            Image.SCALE_SMOOTH
+        ))
     }
 
     override fun paintComponent(g: Graphics) {

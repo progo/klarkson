@@ -92,8 +92,10 @@ enum class AlbumCoverLoadingStatus { LOADING, MISSING, LOADED }
 object AlbumCoverImageService {
     // nested 2-depth
     private val iconCache = HashMap<AlbumCover, HashMap<Pair<Int, Boolean>, BufferedImage>>()
-    private val recordTemplateImage : BufferedImage = ImageIO.read(this.javaClass.classLoader.getResource("img/Record_Orange_400px.png"))
+    val recordImage : BufferedImage =
+        ImageIO.read(this.javaClass.classLoader.getResource("img/Record_Orange_400px.png"))
     val coverLoadingImage: BufferedImage = makeLoadingImage()
+    val recordDecoration = recordImage
 
     private var cacheMisses = 0
     private var cacheAll = 0
@@ -158,12 +160,12 @@ object AlbumCoverImageService {
 
     fun makePlaceholder(ac: AlbumCover) : Image {
         // println("I don't run very often, do I? $sz, $color")
-        val w = recordTemplateImage.width
-        val h = recordTemplateImage.height
-        val bi = BufferedImage(w, h, recordTemplateImage.type)
+        val w = recordImage.width
+        val h = recordImage.height
+        val bi = BufferedImage(w, h, recordImage.type)
 
         val g : Graphics2D = bi.graphics.create() as Graphics2D
-        g.drawImage(recordTemplateImage, 0, 0, null)
+        g.drawImage(recordImage, 0, 0, null)
 
         // Draw a colored sleeve
 
@@ -219,12 +221,12 @@ object AlbumCoverImageService {
 
     private fun makeLoadingImage() : BufferedImage {
         return BufferedImage(
-            recordTemplateImage.width,
-            recordTemplateImage.height,
+            recordImage.width,
+            recordImage.height,
             BufferedImage.TYPE_INT_ARGB
         ).apply {
             val g = graphics
-            g.drawImage(recordTemplateImage, 0, 0, null)
+            g.drawImage(recordImage, 0, 0, null)
 
             g.color = Color.BLACK
             g.fillRoundRect(20, 20, 75, 15, 5, 5)
@@ -268,7 +270,6 @@ object AlbumCoverChangeNotificator {
     private val listeners : MutableList<(List<AlbumCover>) -> Unit> = ArrayList()
     fun registerListener(block: (List<AlbumCover>) -> Unit) { listeners.add(block) }
     fun notifyListeners(covers : List<AlbumCover>) {
-        // println("${covers.size} covers changed! Notifying ${listeners.size} listeners...")
         for (listener in listeners) {
             listener(covers)
         }
