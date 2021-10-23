@@ -1,9 +1,11 @@
 package klarksonmainframe
 
 import java.awt.*
+import java.awt.image.BufferedImage
 import javax.swing.*
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
+import kotlin.random.Random
 
 class SidePane(
     menubar: JMenuBar,
@@ -97,13 +99,12 @@ class SidePane(
      * This gets called when the user makes changes in selections
      */
     private fun onAlbumSelection(ass: AlbumSelection) {
+        updateTracks(ass)
         when (ass.size()) {
             0 -> showAlbum(null)
             1 -> showAlbum(ass.first())
-            else -> showAlbumCount(ass)
+            else -> showAlbums(ass.toList())
         }
-
-        updateTracks(ass)
     }
 
     private fun updateTracks(albumcoverss: Iterable<AlbumCover>) {
@@ -112,12 +113,19 @@ class SidePane(
         tracks.forEach { tracksLM.addElement(it) }
     }
 
-    private fun showAlbumCount(ass : AlbumSelection) {
-        showCover(null)
-        txtArtist.text = "${ass.size()} selected"
+    /**
+     * Show several selected covers.
+     */
+    private fun showAlbums(covers: List<AlbumCover>) {
+        shownCover = null
+        txtArtist.text = " "
         txtAlbum.text = " "
+        showCover(covers)
     }
 
+    /**
+     * Show a single album cover and details.
+     */
     private fun showAlbum(c: AlbumCover?)  {
         shownCover = c
 
@@ -145,8 +153,39 @@ class SidePane(
         ))
     }
 
+    /**
+     * Collect and show at least some album covers [cs].
+     */
+    private fun showCover(cs: List<AlbumCover>) {
+        val w = txtCoverImage.width.coerceAtLeast(100)
+        txtCoverImage.icon = pileCovers(w, cs)
+    }
+
     override fun paintComponent(g: Graphics) {
         showCover(shownCover)
         super.paintComponent(g)
     }
+}
+
+
+private fun pileCovers(size: Int, covers: List<AlbumCover>) : ImageIcon {
+    val b = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
+    val g = b.graphics as Graphics2D
+    val sz = size / 2
+
+    for (cover in covers.take(10)) {
+        val randX = (cover.hashCode() % size).coerceIn(-sz/8, size - sz/2)
+        val randY = (cover.cover.hashCode() % size).coerceIn(-sz/8, size - sz/2)
+        g.drawImage(cover.cover, randX, randY, sz, sz, null)
+    }
+
+    g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f)
+    g.color = Color.BLACK
+    g.fillRect(0, 0, size, size)
+    g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER)
+    g.font = Font("Monospace", Font.BOLD, 20)
+    g.color = Color.ORANGE
+    g.drawString("${covers.size} selected", 10, size/2)
+
+    return ImageIcon(b)
 }
