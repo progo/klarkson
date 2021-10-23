@@ -2,10 +2,8 @@ package klarksonmainframe
 
 import java.awt.Color
 import java.awt.Component
-import javax.swing.DefaultListModel
-import javax.swing.JLabel
-import javax.swing.JList
-import javax.swing.ListCellRenderer
+import java.awt.image.BufferedImage
+import javax.swing.*
 
 class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
     init {
@@ -14,6 +12,7 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
         foreground = Color.ORANGE
         selectionBackground = Color.BLACK
         selectionForeground = Color.ORANGE
+        fixedCellHeight = 16
     }
 
     private fun makeCellRenderer() : ListCellRenderer<Song> {
@@ -25,9 +24,18 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
                 isSelected: Boolean,
                 hasFocus: Boolean
             ): Component {
-                text = "[${song.runtime.toHuman()}] ${song.artist} - ${song.title}"
+                val isSeparator = (song == SongSeparator)
 
-                if (isSelected) {
+                if (isSeparator) {
+                    text = ""
+                    icon = makeLineIcon(list.width, list.fixedCellHeight, list.foreground.darker())
+                }
+                else {
+                    text = "[${song.runtime.toHuman()}] ${song.artist} - ${song.title}"
+                    icon = null
+                }
+
+                if (isSelected && !isSeparator) {
                     foreground = list.selectionForeground
                     background = list.selectionBackground
                 } else {
@@ -40,4 +48,16 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
             }
         }
     }
+}
+
+
+
+fun makeLineIcon(width: Int, height: Int, color: Color) : ImageIcon {
+    val b = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+    val g = b.graphics
+
+    g.color = color
+    g.drawLine(0, height / 2, width, height / 2)
+
+    return ImageIcon(b)
 }

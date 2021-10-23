@@ -3,9 +3,6 @@ package klarksonmainframe
 import java.awt.*
 import java.awt.dnd.*
 import java.awt.event.*
-import java.io.File
-import javax.imageio.IIOException
-import javax.imageio.ImageIO
 import javax.swing.JPanel
 import javax.swing.Timer
 import kotlin.collections.ArrayList

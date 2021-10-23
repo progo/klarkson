@@ -73,6 +73,8 @@ data class Song(
     }
 }
 
+val SongSeparator = Song("", "", "", "", "", 0, 0, 0, "", "", 0)
+
 /*
 Might be that we skip normalized Album/Song model and go for
 a linear structure of only Songs?

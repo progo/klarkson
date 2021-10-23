@@ -2,6 +2,8 @@ package klarksonmainframe
 
 import java.awt.*
 import javax.swing.*
+import javax.swing.event.ListDataEvent
+import javax.swing.event.ListDataListener
 
 class SidePane(
     menubar: JMenuBar,
@@ -50,12 +52,25 @@ class SidePane(
         val tabbpane = JTabbedPane()
         val albumInboxList = DefaultListModel<AlbumCover>()
         val albumInboxScrolled = JScrollPane(AlbumInbox(albumInboxList))
-        val trackst = JScrollPane(TrackList(tracksLM))
+        val trackst = JScrollPane(
+            TrackList(tracksLM),
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        )
+
+        fun updateAlbumInboxTitle() {
+            val count = albumInboxList.size
+            val msg = if (count == 0) "" else "($count)"
+            tabbpane.setTitleAt(0, "Inbox $msg")
+        }
 
         tabbpane.addTab("Inbox", albumInboxScrolled)
         tabbpane.addTab("Tracks", trackst)
 
-        for (a in MpdServer.getAlbums()) { albumInboxList.addElement(a.createCover()) }
+        for (a in MpdServer.getAlbums()) {
+            albumInboxList.addElement(a.createCover())
+        }
+        updateAlbumInboxTitle()
 
         val inner = JPanel().apply {
             layout = BorderLayout()
@@ -71,6 +86,11 @@ class SidePane(
 
         AlbumSelection.registerListener(::onAlbumSelection)
         AlbumCoverChangeNotificator.registerListener { showAlbum(shownCover) }
+        albumInboxList.addListDataListener(object : ListDataListener {
+            override fun intervalAdded(p0: ListDataEvent?) { updateAlbumInboxTitle() }
+            override fun intervalRemoved(p0: ListDataEvent?) { updateAlbumInboxTitle() }
+            override fun contentsChanged(p0: ListDataEvent?) { updateAlbumInboxTitle() }
+        })
     }
 
     /**
@@ -87,7 +107,7 @@ class SidePane(
     }
 
     private fun updateTracks(albumcoverss: Iterable<AlbumCover>) {
-        val tracks = albumcoverss.flatMap { ac -> ac.album.songs }
+        val tracks = albumcoverss.flatMap { ac -> ac.album.songs + listOf(SongSeparator) }
         tracksLM.clear()
         tracks.forEach { tracksLM.addElement(it) }
     }
