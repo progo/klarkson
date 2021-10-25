@@ -174,32 +174,32 @@ private fun pileCovers(size: Int, covers: List<AlbumCover>) : ImageIcon {
     val g = b.graphics as Graphics2D
     val sz = size / 2
 
-    var i = 0
-    println("-------------------------------------------------")
+    /* -----------
+       | 0  1  2 |
+       | 3  4  5 |
+       | 6  7  8 |
+       ----------- */
 
-    // split the mini area into 4x4 grid
-    for (cover in covers.take(12)) {
-        if (i < 0) i = kotlin.math.abs(cover.hashCode() % 16)
-
-        val row = (i / 4).toInt()
-        val col = i % 4
-        println ("$i -> ($col, $row)")
-
-//        val randX = (cover.hashCode() % size).coerceIn(-sz/8, size - sz/2)
-//        val randY = (cover.cover.hashCode() % size).coerceIn(-sz/8, size - sz/2)
-        val x = col * size / 4
-        val y = row * size / 4
+    val places = listOf(3, 5, 2, 1, 0, 4, 6, 7, 8)
+    // split the mini area into 3x3 grid
+    for ((ind, cover) in covers.take(9).withIndex()) {
+        val indexedPlace = places[ind]
+        val row = indexedPlace / 3
+        val col = indexedPlace % 3
+        val x = col * size / 3
+        val y = row * size / 3
         g.drawImage(cover.cover, x, y, sz, sz, null)
-        i++
     }
 
     g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f)
     g.color = Color.BLACK
     g.fillRect(0, 0, size, size)
+    g.color = Color.DARK_GRAY
+    g.fillRect(0, (size*0.4).toInt(), size, size/5)
     g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER)
-    g.font = Font("Monospace", Font.BOLD, 20)
+    g.font = Font("Monospace", Font.BOLD, 22)
     g.color = Color.ORANGE
-    g.drawString("${covers.size} selected", 10, size/2)
+    g.drawString("${covers.size} selected", 10, size/2+5)
 
     return ImageIcon(b)
 }
