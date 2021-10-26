@@ -23,6 +23,11 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
         addMouseListener(object : MouseAdapter() {
             override fun mousePressed(me : MouseEvent) {
                 if (me.isPopupTrigger) {
+                    val itemIx = realIndexUnderPoint(me.point)
+                    if (itemIx >= 0) {
+                        selectedIndices += listOf(itemIx)
+                    }
+
                     object : JPopupMenu() {
                         init {
 
