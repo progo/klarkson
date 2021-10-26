@@ -25,10 +25,14 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
                 if (me.isPopupTrigger) {
                     object : JPopupMenu() {
                         init {
+
                             add(JMenuItem("Add").apply {
+                                icon = ImageIcon(Resource.get("gf24/playback_play.png"))
                                 addActionListener { addSelectedTracks() }
                             })
+
                             add(JMenuItem("Play").apply {
+                                icon = ImageIcon(Resource.get("gf24/playback_play_plus.png"))
                                 addActionListener { addSelectedTracks(play=true) }
                             })
                         }

@@ -93,7 +93,7 @@ object AlbumCoverImageService {
     // nested 2-depth
     private val iconCache = HashMap<AlbumCover, HashMap<Int, BufferedImage>>()
     val recordImage : BufferedImage =
-        ImageIO.read(this.javaClass.classLoader.getResource("img/Record_Orange_400px.png"))
+        ImageIO.read(Resource.get("img/Record_Orange_400px.png"))
     val coverLoadingImage: BufferedImage = makeLoadingImage()
     val recordDecoration = recordImage
 

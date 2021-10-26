@@ -7,6 +7,7 @@ import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.net.URL
 import javax.imageio.ImageIO
 import javax.swing.*
 import javax.swing.filechooser.FileNameExtensionFilter
@@ -14,12 +15,13 @@ import javax.swing.plaf.basic.BasicSplitPaneDivider
 import javax.swing.plaf.basic.BasicSplitPaneUI
 import kotlin.system.exitProcess
 
+object Resource {
+    fun get(s: String) : URL = this.javaClass.classLoader.getResource(s)!!
+}
 
 class KlarksonFrame : JFrame() {
     private lateinit var splitpane : JSplitPane
     private val DEFAULT_SPLIT_LOCATION = 200
-
-    private fun getResource(s: String) = this.javaClass.classLoader.getResource(s)
 
     init {
         createUI()
@@ -30,11 +32,11 @@ class KlarksonFrame : JFrame() {
             isFloatable = false
 
             add(JButton().apply {
-                icon = ImageIcon(getResource("gf24/playback_prev.png"))
+                icon = ImageIcon(Resource.get("gf24/playback_prev.png"))
             })
 
             add(JButton().apply {
-                icon = ImageIcon(getResource("gf24/playback_play.png"))
+                icon = ImageIcon(Resource.get("gf24/playback_play.png"))
                 toolTipText = "Play album"
                 addActionListener {
                     MpdServer.addTracks(AlbumSelection.flatMap { ac : AlbumCover -> ac.album.songs },
@@ -43,7 +45,7 @@ class KlarksonFrame : JFrame() {
             })
 
             add(JButton().apply {
-                icon = ImageIcon(getResource("gf24/playback_play_plus.png"))
+                icon = ImageIcon(Resource.get("gf24/playback_play_plus.png"))
                 toolTipText = "Add album to playlist"
                 addActionListener {
                     MpdServer.addTracks(AlbumSelection.flatMap { ac : AlbumCover -> ac.album.songs })
@@ -51,11 +53,11 @@ class KlarksonFrame : JFrame() {
             })
 
             add(JButton().apply {
-                icon = ImageIcon(getResource("gf24/playback_next.png"))
+                icon = ImageIcon(Resource.get("gf24/playback_next.png"))
             })
 
             add(JButton().apply {
-                icon = ImageIcon(getResource("gf24/playback_stop.png"))
+                icon = ImageIcon(Resource.get("gf24/playback_stop.png"))
             })
         }
     }
@@ -68,7 +70,7 @@ class KlarksonFrame : JFrame() {
 
             add(JMenu("Klarkson").apply {
                 mnemonic = KeyEvent.VK_K
-                icon = ImageIcon(getResource("gf16/burst.png"))
+                icon = ImageIcon(Resource.get("gf16/burst.png"))
 
                 add(JMenuItem("Exit").apply {
                     mnemonic = KeyEvent.VK_X
@@ -80,7 +82,7 @@ class KlarksonFrame : JFrame() {
 
             add(JMenu("Cover").apply {
                 mnemonic = KeyEvent.VK_C
-                icon = ImageIcon(getResource("gf16/picture.png"))
+                icon = ImageIcon(Resource.get("gf16/picture.png"))
 
                 add(JMenuItem("By URL...").apply {
                     mnemonic = KeyEvent.VK_U
