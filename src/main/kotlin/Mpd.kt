@@ -1,6 +1,7 @@
 package klarksonmainframe
 
 import org.bff.javampd.server.Mpd
+import org.bff.javampd.song.MpdSong
 import org.bff.javampd.song.SongSearcher
 
 object MpdServer {
@@ -12,14 +13,20 @@ object MpdServer {
         return collectIntoAlbums(mpd, songs)
     }
 
-    fun addTracks(ts : Iterable<Song>, play : Boolean = false) {
+    /**
+     * Add given Songs to MPD playlist, and start playing them, if [play].
+     */
+    fun addTracks(tracks : Iterable<Song>, play : Boolean = false) {
         val playlist = mpd.playlist
-        val tracks = playlist.songList.size
-        ts.forEach { mpd.playlist.addSong(it.file) }
+        val position = playlist.songList.size
+        tracks.forEach { mpd.playlist.addSong(it.file) }
 
-//        if (play) {
-//            val f = ts.firstOrNull() ?: return
-//            mpd.player.playSong()
-//        }
+        // MpdSong.position is a zero-based index so if we want to play the
+        // just-added content we find the MpdSong that has the [position].
+
+        if (play) {
+            val s : MpdSong = playlist.songList.first { it.position == position }
+            mpd.player.playSong(s)
+        }
     }
 }

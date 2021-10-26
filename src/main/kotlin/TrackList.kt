@@ -21,12 +21,24 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
         addMouseListener(object : MouseAdapter() {
             override fun mousePressed(me : MouseEvent) {
                 if (me.isPopupTrigger) {
-                    TrackContextMenu() .apply {
-                        show(this@TrackList, me.x, me.y)
-                    }
+                    object : JPopupMenu() {
+                        init {
+                            add(JMenuItem("Add").apply {
+                                addActionListener { addSelectedTracks() }
+                            })
+                            add(JMenuItem("Play").apply {
+                                addActionListener { addSelectedTracks(play=true) }
+                            })
+                        }
+                    } .show(this@TrackList, me.x, me.y)
                 }
             }
         })
+    }
+
+    private fun addSelectedTracks(play : Boolean = false) {
+        val tracks = selectedValuesList.filter { it != SongSeparator }
+        MpdServer.addTracks(tracks, play=play)
     }
 
     private fun makeCellRenderer() : ListCellRenderer<Song> {
@@ -76,10 +88,3 @@ fun makeLineIcon(width: Int, height: Int, color: Color) : ImageIcon {
     return ImageIcon(b)
 }
 
-
-class TrackContextMenu : JPopupMenu() {
-    init {
-        add(JMenuItem("Play").apply { })
-        add(JMenuItem("Add").apply { })
-    }
-}
