@@ -48,17 +48,7 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
         addMouseMotionListener(object : MouseAdapter() {
             override fun mouseMoved(me: MouseEvent) {
                 val list = this@TrackList
-                val itemIndex = list.locationToIndex(me.point)
-
-                // Check if pointer is really over an item.
-                // If the list is fully populated, requiring scrollbars,
-                // this logic is not valid, but luckily it works out.
-                val contentsHeight = list.model.size * fixedCellHeight
-                if (me.point.y >= contentsHeight) {
-                    currentlyHoveredIndex = -1
-                    list.repaint()
-                    return
-                }
+                val itemIndex = list.realIndexUnderPoint(me.point)
 
                 if (itemIndex == currentlyHoveredIndex)
                     return
@@ -67,6 +57,22 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
                 list.repaint()
             }
         })
+    }
+
+    /**
+     * Do the same as JList.locationToIndex but also check against empty.
+     */
+    private fun realIndexUnderPoint(p : java.awt.Point) : Int {
+        // Check if pointer is really over an item.
+        // If the list is fully populated, requiring scrollbars,
+        // this logic is not valid, but luckily it works out.
+
+        val contentsHeight = model.size * fixedCellHeight
+        if (p.y >= contentsHeight) {
+            return -1
+        }
+
+        return locationToIndex(p)
     }
 
     private fun addSelectedTracks(play : Boolean = false) {
