@@ -2,6 +2,8 @@ package klarksonmainframe
 
 import java.awt.Color
 import java.awt.Component
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import javax.swing.*
 
@@ -13,6 +15,18 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
         selectionBackground = Color.BLACK
         selectionForeground = Color.ORANGE
         fixedCellHeight = 16
+        selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+
+
+        addMouseListener(object : MouseAdapter() {
+            override fun mousePressed(me : MouseEvent) {
+                if (me.isPopupTrigger) {
+                    TrackContextMenu() .apply {
+                        show(this@TrackList, me.x, me.y)
+                    }
+                }
+            }
+        })
     }
 
     private fun makeCellRenderer() : ListCellRenderer<Song> {
@@ -60,4 +74,12 @@ fun makeLineIcon(width: Int, height: Int, color: Color) : ImageIcon {
     g.drawLine(0, height / 2, width, height / 2)
 
     return ImageIcon(b)
+}
+
+
+class TrackContextMenu : JPopupMenu() {
+    init {
+        add(JMenuItem("Play").apply { })
+        add(JMenuItem("Add").apply { })
+    }
 }
