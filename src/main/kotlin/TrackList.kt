@@ -8,6 +8,8 @@ import java.awt.image.BufferedImage
 import javax.swing.*
 
 class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
+    private var currentlyHoveredIndex = -1
+
     init {
         cellRenderer = makeCellRenderer()
         background = Color.DARK_GRAY
@@ -32,6 +34,33 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
                         }
                     } .show(this@TrackList, me.x, me.y)
                 }
+            }
+            override fun mouseExited(me: MouseEvent) {
+                currentlyHoveredIndex = -1
+                repaint()
+            }
+        })
+
+        addMouseMotionListener(object : MouseAdapter() {
+            override fun mouseMoved(me: MouseEvent) {
+                val list = this@TrackList
+                val itemIndex = list.locationToIndex(me.point)
+
+                // Check if pointer is really over an item.
+                // If the list is fully populated, requiring scrollbars,
+                // this logic is not valid, but luckily it works out.
+                val contentsHeight = list.model.size * fixedCellHeight
+                if (me.point.y >= contentsHeight) {
+                    currentlyHoveredIndex = -1
+                    list.repaint()
+                    return
+                }
+
+                if (itemIndex == currentlyHoveredIndex)
+                    return
+
+                currentlyHoveredIndex = itemIndex
+                list.repaint()
             }
         })
     }
@@ -67,6 +96,11 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
                 } else {
                     foreground = list.foreground
                     background = list.background
+                }
+
+                // The hover effect is realized here.
+                if (index == currentlyHoveredIndex && !isSeparator) {
+                    background = background.brighter()
                 }
 
                 isOpaque = true
