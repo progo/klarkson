@@ -157,11 +157,13 @@ class KlarksonFrame : JFrame() {
     }
 
     private fun createUI() {
+        val albumOrg = AlbumOrganizer()
         val sidepane = SidePane(
             menubar = createMenuBar(),
-            toolbar = createToolbar()
+            toolbar = createToolbar(),
+            albums = albumOrg
         )
-        val playground = AlbumPlayground()
+        val playground = AlbumPlayground(albums = albumOrg)
 
         sidepane.minimumSize = Dimension(200, 200)
         playground.minimumSize = Dimension(400, 400)

@@ -2,15 +2,14 @@ package klarksonmainframe
 
 import java.awt.*
 import java.awt.image.BufferedImage
-import java.lang.Math.abs
 import javax.swing.*
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
-import kotlin.random.Random
 
 class SidePane(
     menubar: JMenuBar,
-    toolbar: JToolBar
+    toolbar: JToolBar,
+    private val albums : AlbumOrganizer
 ) : JPanel() {
     private val txtArtist = JLabel(" ")
     private val txtAlbum = JLabel(" ")
@@ -70,22 +69,30 @@ class SidePane(
         tabbpane.addTab("Inbox", albumInboxScrolled)
         tabbpane.addTab("Tracks", trackst)
 
+        // Once a search has been done a JList<AlbumCover> should be populated with results.
+        // There should be a couple things, for example "select all" so that they
+        // can be grouped in playground.
+        val searchBox = SearchBox()
+        tabbpane.addTab("Find", object : JList<AlbumCover>() { })
+
         for (a in MpdServer.getAlbums()) {
             albumInboxList.addElement(a.createCover())
         }
+
         updateAlbumInboxTitle()
 
         val inner = JPanel().apply {
             layout = BorderLayout()
 
             add(albumshowAndPlayback, BorderLayout.NORTH)
-            // add(albumInboxScrolled, BorderLayout.CENTER)
             add(tabbpane, BorderLayout.CENTER)
-            // add(toolbar, BorderLayout.SOUTH)
+            add(searchBox, BorderLayout.SOUTH)
         }
 
         add(menubar, BorderLayout.NORTH)
         add(inner, BorderLayout.CENTER)
+
+        searchBox.addActionListener { println(searchBox.text.trim()) }
 
         AlbumSelection.registerListener(::onAlbumSelection)
         AlbumCoverChangeNotificator.registerListener { showAlbum(shownCover) }

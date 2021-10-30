@@ -5,13 +5,11 @@ import java.awt.dnd.*
 import java.awt.event.*
 import javax.swing.JPanel
 import javax.swing.Timer
-import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
 import kotlin.math.*
 import kotlin.random.Random
 import kotlin.system.measureNanoTime
 
-private const val ALBUM_COVER_SIZE = 200
+const val ALBUM_COVER_SIZE = 200
 private val ZOOM_SCALE_FACTORS = doubleArrayOf(0.05, 0.10, 0.20, 0.50, 1.00, 1.50, 2.00)
 private enum class ZoomDirection (val value: Int) {
     IN (1),
@@ -70,127 +68,8 @@ object AlbumSelection : Iterable<AlbumCover> {
     }
 }
 
-/**
- * AlbumOrganizer takes care of the cover positions and shit.
- */
-class AlbumOrganizer : Iterable<AlbumCover> {
-    // TreeSet is a strong idea here
-    private val albums : ArrayList<AlbumCover> = ArrayList()
 
-    fun put(a: AlbumCover) {
-        albums.add(a)
-    }
-
-    fun size() = albums.size
-
-    /**
-     *  Get the topmost cover around a virtual point, or null.
-     */
-    fun getByLocation(x: Int, y: Int): AlbumCover? {
-        fun pred(a: AlbumCover) : Boolean {
-            return ((a.x - ALBUM_COVER_SIZE/2 < x) and (x < a.x + ALBUM_COVER_SIZE/2)
-                    and (a.y - ALBUM_COVER_SIZE/2 < y) and (y < a.y + ALBUM_COVER_SIZE/2))
-        }
-        return albums.lastOrNull(::pred)
-    }
-
-    fun getByLocation(p: Point) = getByLocation(p.x, p.y)
-
-    /**
-     * Points a and b form a rectangular region: find all albums within the region.
-     */
-    fun allAlbumsWithinRegion(a: Point, b: Point) : List<AlbumCover> {
-        val (x1, y1) = a
-        val (x2, y2) = b
-        fun p(a: AlbumCover) : Boolean = (x1 > a.x) && (a.x > x2) && (y1 > a.y) && (a.y > y2)
-        return albums.filter(::p)
-    }
-
-    /**
-     * Find a nearby to point [p] an album cover that's to direction [dir].
-     */
-    fun getAlbumInTheDirectionOf(p: Point, dir: Direction) : AlbumCover? {
-        /*
-        First let's see if a simple conefied approach works okay for us:
-
-              \             /
-               \    UP     /
-                \         /
-                 \       /
-                  \     /
-            LEFT   (x,y)   RIGHT
-                  /     \
-                 /       \
-                /         \
-               /   DOWN    \
-              /             \
-
-         Findings: this works quite okay. Works well for matrix-aligned stuff.
-         */
-
-        // TODO actually a parabel search radius will be a smarter approach once
-        // we implement something.
-
-        // TODO Linear search and ordering over everything is not fast.
-        // Maybe best to incorporate a distance limitation right in the filtering
-        // pred.
-
-        val pred : (AlbumCover) -> Boolean = when (dir) {
-            Direction.UP    -> { ac -> (ac.y > p.y) and (abs(ac.x - p.x) < (ac.y - p.y)*2.0) }
-            Direction.DOWN  -> { ac -> (ac.y < p.y) and (abs(ac.x - p.x) < (p.y - ac.y)*2.0) }
-            Direction.LEFT  -> { ac -> (ac.x > p.x) and (abs(ac.y - p.y) < (ac.x - p.x)*2.0) }
-            Direction.RIGHT -> { ac -> (ac.x < p.x) and (abs(ac.y - p.y) < (p.x - ac.x)*2.0) }
-        }
-
-        return albums.filter(pred).minByOrNull { p.distance(it.x, it.y) }
-    }
-
-    /**
-     * Seq of everything
-     */
-    override operator fun iterator() : Iterator<AlbumCover> {
-        return albums.iterator()
-    }
-
-    /**
-     *  Sort and order the albums. Subject to become a noop if we switch to a tree structure.
-     */
-    fun reorganize() {
-        albums.sort()
-    }
-}
-
-//fun createAlbumCovers(count : Int = 100): Sequence<AlbumCover>  {
-//    fun randomColor(): Color {
-//        return Color(
-//            Random.nextInt(255),
-//            Random.nextInt(255),
-//            Random.nextInt(255),
-//        )
-//    }
-//
-//    fun loadCover(f: File) : AlbumCover {
-//        return AlbumCover(
-//            Album(
-//                artist = "artist${Random.nextInt()}",
-//                album = "album${Random.nextInt()}",
-//                year = Random.nextInt(1900, 2030),
-//                discCount = 1,
-//                runtime = 1,
-//                songs = listOf()
-//            ),
-//            (Random.nextInt() % 300 ) * 15,
-//            (Random.nextInt() % 300 ) * 15,
-//            try { ImageIO.read(f) } catch (ie: IIOException) { null },
-//            randomColor()
-//        )
-//    }
-//    return File("/home/progo/koodi/mpyd/data/covers/").walk().shuffled().take(count).map(::loadCover)
-//}
-
-class AlbumPlayground(): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, DropTargetListener {
-    private val albums = AlbumOrganizer()
-
+class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, DropTargetListener {
     init {
         background = Color(225, 205, 40)
         DropTarget(this, this)
@@ -335,6 +214,7 @@ class AlbumPlayground(): JPanel(), KeyListener, MouseListener, MouseMotionListen
             paintAlbums(g2, coversOnTheDrag, highlight = true)
         }
 
+        // Debug messages
         g2.color = Color.BLACK
         g2.fillRect(0, 0, width, 14)
         g2.color = Color.YELLOW
@@ -354,7 +234,6 @@ class AlbumPlayground(): JPanel(), KeyListener, MouseListener, MouseMotionListen
             return
 
         val selected = AlbumSelection.first()
-        // println("Move $selected")
 
         val alb = albums.getAlbumInTheDirectionOf(Point(selected.x, selected.y), dir)
         if (alb != null) {
@@ -376,6 +255,10 @@ class AlbumPlayground(): JPanel(), KeyListener, MouseListener, MouseMotionListen
             KeyEvent.VK_DOWN -> findAdjacentAlbumCover(Direction.DOWN)
             KeyEvent.VK_ENTER -> centerAroundSelected()
             KeyEvent.VK_SPACE -> bringSelectedCoversTogether()
+        }
+
+        if (ke.keyCode == KeyEvent.VK_SLASH || (ke.isControlDown && ke.keyCode == KeyEvent.VK_F)) {
+            SearchBoxActivator.focus()
         }
 
         repaint()
