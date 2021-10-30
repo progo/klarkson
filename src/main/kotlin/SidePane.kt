@@ -63,8 +63,8 @@ class SidePane(
 
         fun updateAlbumInboxTitle() {
             val count = albumInboxList.size
-            val msg = if (count == 0) "" else "($count)"
-            tabbpane.setTitleAt(0, "Inbox $msg")
+            val msg = if (count == 0) "" else " ($count)"
+            tabbpane.setTitleAt(0, "Inbox$msg")
         }
 
         tabbpane.addTab("Inbox", albumInboxScrolled)
@@ -198,8 +198,15 @@ private fun pileCovers(size: Int, covers: List<AlbumCover>) : ImageIcon {
     g.fillRect(0, (size*0.4).toInt(), size, size/5)
     g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER)
     g.font = Font("Monospace", Font.BOLD, 22)
+
+    // Quick shadow effect.
+    val textX = 10
+    val textY = size/2 + 5
+
+    g.color = Color.BLACK
+    g.drawString("${covers.size} albums selected", textX+2, textY+2)
     g.color = Color.ORANGE
-    g.drawString("${covers.size} selected", 10, size/2+5)
+    g.drawString("${covers.size} albums selected", textX, textY)
 
     return ImageIcon(b)
 }
