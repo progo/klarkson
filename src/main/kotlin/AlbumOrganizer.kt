@@ -149,12 +149,12 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 
         if (query.artist != null) {
             // println("Searching by artist [${query.artist}]")
-            result.addAll(albums.filter { ac -> ac.album.artist == query.artist })
+            result.addAll(albums.filter { ac -> query.artist.matches(ac.album.artist) })
         }
 
         if (query.album != null) {
             // println("Searching by album [${query.album}]")
-            val pred = { ac : AlbumCover -> ac.album.album == query.album }
+            val pred = { ac : AlbumCover -> query.album.matches(ac.album.album) }
 
             if (unionp) {
                 result.addAll(albums.filter(pred))
