@@ -92,7 +92,9 @@ class SidePane(
         add(menubar, BorderLayout.NORTH)
         add(inner, BorderLayout.CENTER)
 
-        searchBox.addActionListener { albums.searchAlbums(parseQuery(searchBox.text)) }
+        searchBox.addActionListener {
+            albums.startOrContinueSearch(searchBox.text.trim())
+        }
 
         AlbumSelection.registerListener(::onAlbumSelection)
         AlbumCoverChangeNotificator.registerListener { showAlbum(shownCover) }

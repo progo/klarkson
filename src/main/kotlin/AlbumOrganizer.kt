@@ -4,12 +4,22 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
 
+interface SearchEventHandler {
+    fun newSearch(results: SearchResults)
+    fun nextResult()
+}
+
 /**
  * AlbumOrganizer is our data structure and collector for albums in the playground.
  */
 class AlbumOrganizer : Iterable<AlbumCover> {
     // TreeSet is a strong idea here
     private val albums : ArrayList<AlbumCover> = ArrayList()
+
+    // Search state
+    private var previousSearch : String = " "
+    private var searchResults = TreeSet<AlbumCover>()
+    private val searchListeners = ArrayList<SearchEventHandler>()
 
     fun put(a: AlbumCover) {
         albums.add(a)
@@ -95,11 +105,45 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 
 
     /**
+     * Listeners for search events
+     */
+    fun registerSearchEventListener(seh : SearchEventHandler) {
+        searchListeners.add(seh)
+    }
+    private fun notifySearchEventListeners(new : Boolean) {
+        searchListeners.forEach {
+            if (new)
+                it.newSearch(SearchResults(searchResults))
+            else
+                it.nextResult()
+        }
+    }
+
+    /**
      * Search utilities...
      * And yes, we are dealing with entire albums here.
      * If a track name should match, the whole album will be included.
      */
-    fun searchAlbums(query: ParsedSearchQuery) : Iterable<AlbumCover> {
+
+    fun startOrContinueSearch(query : String) {
+        val q = query.trim()
+
+        // Continue previously made search
+        if (q == previousSearch) {
+            notifySearchEventListeners(new=false)
+        }
+
+        // ...or  start a new one.
+        else {
+            searchResults.clear()
+            searchResults.addAll(searchAlbums(parseQuery(q)))
+            println("Start a new search with [$q] => ${searchResults.size} results.")
+            previousSearch = q
+            notifySearchEventListeners(new=true)
+        }
+    }
+
+    private fun searchAlbums(query: ParsedSearchQuery) : Iterable<AlbumCover> {
         val result = TreeSet<AlbumCover>()
         val unionp = query.matchMode == SearchMode.MATCH_ANY
 
@@ -116,7 +160,7 @@ class AlbumOrganizer : Iterable<AlbumCover> {
                 result.addAll(albums.filter(pred))
             }
             else {
-                result.retainAll(result.filter(pred))
+                result.retainAll(pred)
             }
         }
 

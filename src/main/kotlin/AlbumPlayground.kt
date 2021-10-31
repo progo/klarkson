@@ -75,11 +75,25 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         DropTarget(this, this)
 
         AlbumCoverChangeNotificator.registerListener { repaint() }
+
+        albums.registerSearchEventListener(object : SearchEventHandler {
+            override fun newSearch(results: SearchResults) {
+                searchResults = results
+                nextResult()
+            }
+
+            override fun nextResult() {
+                val cover = searchResults?.next(cycle=true) ?: return
+                AlbumSelection.replace(setOf(cover))
+                centerAroundCover(cover)
+            }
+        })
     }
 
     private val coversOnTheMove: MutableSet<AlbumCover> = HashSet()
     private val coversOnTheDrag: MutableList<AlbumCover> = mutableListOf()
     private var coverDragPoint: Point? = null
+    private var searchResults: SearchResults? = null
 
     private var viewportX = 0
     private var viewportY = 0
@@ -555,6 +569,11 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         }.apply {
             start()
         }
+    }
+
+    private fun centerAroundCover(ac: AlbumCover?, animate: Boolean = true) {
+        val cover = ac ?: return
+        centerAroundPoint(ac.x, ac.y, animate)
     }
 
     /**
