@@ -1,5 +1,7 @@
 package klarksonmainframe
 
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.abs
 
 /**
@@ -94,9 +96,31 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 
     /**
      * Search utilities...
+     * And yes, we are dealing with entire albums here.
+     * If a track name should match, the whole album will be included.
      */
-    fun searchAlbums(album: String = "", artist: String = "", runtime: Int = 0) : Iterable<AlbumCover> {
-        val res = albums.filter { albumCover -> albumCover.album.artist == artist }
-        return res
+    fun searchAlbums(query: ParsedSearchQuery) : Iterable<AlbumCover> {
+        val result = TreeSet<AlbumCover>()
+        val unionp = query.matchMode == SearchMode.MATCH_ANY
+
+        if (query.artist != null) {
+            // println("Searching by artist [${query.artist}]")
+            result.addAll(albums.filter { ac -> ac.album.artist == query.artist })
+        }
+
+        if (query.album != null) {
+            // println("Searching by album [${query.album}]")
+            val pred = { ac : AlbumCover -> ac.album.album == query.album }
+
+            if (unionp) {
+                result.addAll(albums.filter(pred))
+            }
+            else {
+                result.retainAll(result.filter(pred))
+            }
+        }
+
+        // println("Got ${result.size} matches.")
+        return result
     }
 }
