@@ -2,9 +2,7 @@ package klarksonmainframe
 
 import java.awt.Color
 import java.awt.Font
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
+import java.awt.event.*
 import javax.swing.JTextField
 
 class SearchBox : JTextField() {
@@ -30,7 +28,14 @@ class SearchBox : JTextField() {
                 background = backgroundDefocus
                 repaint()
             }
+        })
 
+        addKeyListener(object : KeyAdapter() {
+            override fun keyPressed(ke: KeyEvent) {
+                if (ke.isControlDown && ke.keyCode == KeyEvent.VK_F) {
+                    focus()
+                }
+            }
         })
     }
 
