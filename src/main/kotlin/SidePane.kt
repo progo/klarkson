@@ -53,7 +53,13 @@ class SidePane(
 
         val tabbpane = JTabbedPane()
         val albumInboxList = DefaultListModel<AlbumCover>()
-        val albumInboxScrolled = JScrollPane(AlbumInbox(albumInboxList))
+        val albumInbox = AlbumCoverList(albumInboxList).apply {
+            // DnD, a complex beast. We choose the absolute easiest route.
+            dragEnabled = true
+            // And a singleton hack to go with it
+            AlbumInboxSelection.setListComp(this)
+        }
+        val albumInboxScrolled = JScrollPane(albumInbox)
         val trackst = JScrollPane(
             TrackList(tracksLM),
             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -73,7 +79,8 @@ class SidePane(
         // There should be a couple things, for example "select all" so that they
         // can be grouped in playground.
         val searchBox = SearchBox()
-        tabbpane.addTab("Find", object : JList<AlbumCover>() { })
+        val searchResultsList = DefaultListModel<AlbumCover>()
+        tabbpane.addTab("Search", AlbumCoverList(searchResultsList))
 
         for (a in MpdServer.getAlbums()) {
             albumInboxList.addElement(a.createCover())
@@ -95,6 +102,16 @@ class SidePane(
         searchBox.addActionListener {
             albums.startOrContinueSearch(searchBox.text.trim())
         }
+
+        albums.registerSearchEventListener(object : SearchEventHandler {
+            override fun newSearch(results: SearchResults) {
+                searchResultsList.clear()
+                results.forEach { searchResultsList.addElement(it) }
+                tabbpane.setTitleAt(2, "Search (${results.size()})")
+            }
+
+            override fun nextResult() { }
+        })
 
         AlbumSelection.registerListener(::onAlbumSelection)
         AlbumCoverChangeNotificator.registerListener { showAlbum(shownCover) }
