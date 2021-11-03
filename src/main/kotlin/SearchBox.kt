@@ -8,9 +8,12 @@ import javax.swing.JTextField
 class SearchBox : JTextField() {
     private val backgroundFocus = Color.BLACK
     private val backgroundDefocus = Color.GRAY
+    private val flashColorBg = Color.YELLOW
+    private val flashColorFg = Color.BLACK
+    private val foregroundColor = Color.ORANGE
 
     init {
-        foreground = Color.ORANGE
+        foreground = foregroundColor
         background = backgroundDefocus
 
         font = Font("sans serif", Font.PLAIN, 16)
@@ -20,8 +23,15 @@ class SearchBox : JTextField() {
 
         addFocusListener(object : FocusAdapter() {
             override fun focusGained(p0: FocusEvent?) {
-                background = backgroundFocus
+                background = flashColorBg
+                foreground = flashColorFg
                 repaint()
+
+                swingDelay(100) {
+                    foreground = foregroundColor
+                    background = backgroundFocus
+                    repaint()
+                }
             }
 
             override fun focusLost(p0: FocusEvent?) {
