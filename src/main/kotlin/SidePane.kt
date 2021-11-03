@@ -71,6 +71,10 @@ class SidePane(
             val msg = if (count == 0) "" else " ($count)"
             tabbpane.setTitleAt(0, "Inbox$msg")
         }
+        fun updateSearchTabTitle(r: SearchResults?) {
+            val resultsCount = r?.size() ?: -1
+            tabbpane.setTitleAt(2, "Search" + if (resultsCount > 0) " ($resultsCount)" else "")
+        }
 
         tabbpane.addTab("Inbox", albumInboxScrolled)
         tabbpane.addTab("Tracks", trackst)
@@ -87,6 +91,7 @@ class SidePane(
         }
 
         updateAlbumInboxTitle()
+        updateSearchTabTitle(null)
 
         val inner = JPanel().apply {
             layout = BorderLayout()
@@ -107,7 +112,7 @@ class SidePane(
             override fun newSearch(results: SearchResults) {
                 searchResultsList.clear()
                 results.forEach { searchResultsList.addElement(it) }
-                tabbpane.setTitleAt(2, "Search (${results.size()})")
+                updateSearchTabTitle(results)
             }
 
             override fun nextResult() { }
