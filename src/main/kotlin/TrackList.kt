@@ -64,22 +64,6 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
         })
     }
 
-    /**
-     * Do the same as JList.locationToIndex but also check against empty.
-     */
-    private fun realIndexUnderPoint(p : java.awt.Point) : Int {
-        // Check if pointer is really over an item.
-        // If the list is fully populated, requiring scrollbars,
-        // this logic is not valid, but luckily it works out.
-
-        val contentsHeight = model.size * fixedCellHeight
-        if (p.y >= contentsHeight) {
-            return -1
-        }
-
-        return locationToIndex(p)
-    }
-
     private fun addSelectedTracks(play : Boolean = false) {
         val tracks = selectedValuesList.filter { it != SongSeparator }
         MpdServer.addTracks(tracks, play=play)

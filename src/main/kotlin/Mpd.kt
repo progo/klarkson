@@ -8,8 +8,8 @@ object MpdServer {
     private val mpd = Mpd.Builder().build()
 
     fun getAlbums(count: Int = 100): List<Album> {
-        val testSearch = "Blade Runner"
-        val songs = mpd.songSearcher.search(SongSearcher.ScopeType.ALBUM, testSearch)
+        val testSearch = "Mike Oldfield"
+        val songs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, testSearch)
         return collectIntoAlbums(mpd, songs)
     }
 
@@ -28,5 +28,10 @@ object MpdServer {
             val s : MpdSong = playlist.songList.first { it.position == position }
             mpd.player.playSong(s)
         }
+    }
+
+    fun addAlbums(albums: Iterable<AlbumCover>, play : Boolean = false) {
+        val traxx = albums.flatMap { ac -> ac.album.songs }
+        addTracks(traxx, play=play)
     }
 }

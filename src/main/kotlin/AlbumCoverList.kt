@@ -15,6 +15,7 @@ class AlbumCoverList(listModel : DefaultListModel<AlbumCover>) : JList<AlbumCove
         foreground = Color.ORANGE.darker()
         selectionBackground = Color.BLACK
         selectionForeground = Color.ORANGE
+        componentPopupMenu = AlbumCoverListContextMenu(this)
 
         AlbumCoverChangeNotificator.registerListener { repaint() }
     }
@@ -45,5 +46,35 @@ class AlbumCoverList(listModel : DefaultListModel<AlbumCover>) : JList<AlbumCove
             }
         }
     }
+}
 
+
+class AlbumCoverListContextMenu(private val listCmp : AlbumCoverList) : JPopupMenu() {
+    init {
+        add(JMenuItem("Play").apply {
+            icon = ImageIcon(Resource.get("gf24/playback_play.png"))
+            addActionListener {
+                MpdServer.addAlbums(listCmp.selectedValuesList, play=true)
+            }
+        })
+        add(JMenuItem("Append").apply {
+            icon = ImageIcon(Resource.get("gf24/playback_play_plus.png"))
+            addActionListener {
+                MpdServer.addAlbums(listCmp.selectedValuesList, play=false)
+            }
+        })
+    }
+
+    /**
+     * Show the context menu but also select whatever element might be
+     * under the pointer.
+     */
+    override fun show(cmp: Component, x: Int, y: Int) {
+        cmp as AlbumCoverList
+        val row = cmp.realIndexUnderPoint(java.awt.Point(x, y))
+        if (row >= 0) {
+            cmp.selectedIndices += listOf(row)
+        }
+        super.show(cmp, x, y)
+    }
 }
