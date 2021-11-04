@@ -1,10 +1,14 @@
 package klarksonmainframe
 
 import java.awt.*
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import javax.swing.*
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
+import javax.swing.event.ListSelectionEvent
+import javax.swing.event.ListSelectionListener
 
 class SidePane(
     menubar: JMenuBar,
@@ -71,27 +75,31 @@ class SidePane(
             val msg = if (count == 0) "" else " ($count)"
             tabbpane.setTitleAt(0, "Inbox$msg")
         }
-        fun updateSearchTabTitle(r: SearchResults?) {
-            val resultsCount = r?.size() ?: -1
+        fun updateSearchTabTitle(r: SearchResults? = null) {
+            val resultsCount = r?.size ?: -1
             tabbpane.setTitleAt(2, "Search" + if (resultsCount > 0) " ($resultsCount)" else "")
         }
 
         tabbpane.addTab("Inbox", albumInboxScrolled)
         tabbpane.addTab("Tracks", trackst)
 
-        // Once a search has been done a JList<AlbumCover> should be populated with results.
-        // There should be a couple things, for example "select all" so that they
-        // can be grouped in playground.
         val searchBox = SearchBox()
-        val searchResultsList = DefaultListModel<AlbumCover>()
-        tabbpane.addTab("Search", AlbumCoverList(searchResultsList))
+        val searchResultsListM = DefaultListModel<AlbumCover>()
+        val searchResultsList = AlbumCoverList(searchResultsListM) .apply {
+            // Here in the Search results list we hook up the selections with the playground.
+            addListSelectionListener {
+                AlbumSelection.replace(selectedValuesList)
+            }
+        }
+
+        tabbpane.addTab("Search", searchResultsList)
 
         for (a in MpdServer.getAlbums()) {
             albumInboxList.addElement(a.createCover())
         }
 
         updateAlbumInboxTitle()
-        updateSearchTabTitle(null)
+        updateSearchTabTitle()
 
         val inner = JPanel().apply {
             layout = BorderLayout()
@@ -109,13 +117,22 @@ class SidePane(
         }
 
         albums.registerSearchEventListener(object : SearchEventHandler {
+            private var searchResults : SearchResults? = null
             override fun newSearch(results: SearchResults) {
-                searchResultsList.clear()
-                results.forEach { searchResultsList.addElement(it) }
+                searchResults = results
+                searchResultsListM.clear()
+                results.forEach { searchResultsListM.addElement(it) }
                 updateSearchTabTitle(results)
+                nextResult()
             }
 
-            override fun nextResult() { }
+            override fun nextResult() {
+                // TODO all fun and games but we should probably hook into the playground's handling instead
+                // of running two separate sources of truth here.
+                val sr = searchResults ?: return
+                sr.next(cycle=true)
+                searchResultsList.selectedIndex = sr.seekIndex - 1
+            }
         })
 
         AlbumSelection.registerListener(::onAlbumSelection)

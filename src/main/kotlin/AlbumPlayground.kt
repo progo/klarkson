@@ -75,8 +75,10 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         DropTarget(this, this)
 
         AlbumCoverChangeNotificator.registerListener { repaint() }
+        AlbumSelection.registerListener { repaint() }
 
         albums.registerSearchEventListener(object : SearchEventHandler {
+            private var searchResults: SearchResults? = null
             override fun newSearch(results: SearchResults) {
                 searchResults = results
                 nextResult()
@@ -93,7 +95,6 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
     private val coversOnTheMove: MutableSet<AlbumCover> = HashSet()
     private val coversOnTheDrag: MutableList<AlbumCover> = mutableListOf()
     private var coverDragPoint: Point? = null
-    private var searchResults: SearchResults? = null
 
     private var viewportX = 0
     private var viewportY = 0

@@ -2,13 +2,14 @@ package klarksonmainframe
 
 class SearchResults(result : Iterable<AlbumCover>) : Iterable<AlbumCover> {
     private val covers = result.toList()
-    private var seekIndex = 0
+    var seekIndex = 0
+        private set
 
     override fun iterator(): Iterator<AlbumCover> {
         return covers.iterator()
     }
 
-    fun size() = covers.size
+    val size get() = covers.size
 
     fun next(cycle: Boolean = false) : AlbumCover? {
         if (covers.isEmpty()) {

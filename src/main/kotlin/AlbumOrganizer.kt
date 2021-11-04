@@ -5,7 +5,13 @@ import kotlin.collections.ArrayList
 import kotlin.math.abs
 
 interface SearchEventHandler {
+    /**
+     * Search has commenced with results.
+     **/
     fun newSearch(results: SearchResults)
+    /**
+     * Search event fires, but it's the same query, same results as before.
+     **/
     fun nextResult()
 }
 
@@ -18,7 +24,6 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 
     // Search state
     private var previousSearch : String = " "
-    private var searchResults = TreeSet<AlbumCover>()
     private val searchListeners = ArrayList<SearchEventHandler>()
 
     fun put(a: AlbumCover) {
@@ -110,11 +115,13 @@ class AlbumOrganizer : Iterable<AlbumCover> {
     fun registerSearchEventListener(seh : SearchEventHandler) {
         searchListeners.add(seh)
     }
-    private fun notifySearchEventListeners(new : Boolean) {
+    private fun notifySearchEventListeners(results: SearchResults? = null, new : Boolean) {
         searchListeners.forEach {
-            if (new)
-                it.newSearch(SearchResults(searchResults))
-            else
+            if (new && results != null)
+                it.newSearch(SearchResults(results))
+            if (new && results == null)
+                throw KotlinNullPointerException("what the hell's going on?")
+            if (!new)
                 it.nextResult()
         }
     }
@@ -135,11 +142,10 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 
         // ...or  start a new one.
         else {
-            searchResults.clear()
-            searchResults.addAll(searchAlbums(parseQuery(q)))
-            println("Start a new search with [$q] => ${searchResults.size} results.")
+            val sr = SearchResults(searchAlbums(parseQuery(q)))
+            println("Start a new search with [$q] => ${sr.size} results.")
             previousSearch = q
-            notifySearchEventListeners(new=true)
+            notifySearchEventListeners(results = sr, new=true)
         }
     }
 
