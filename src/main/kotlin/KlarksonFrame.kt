@@ -39,8 +39,7 @@ class KlarksonFrame : JFrame() {
                 icon = ImageIcon(Resource.get("gf24/playback_play.png"))
                 toolTipText = "Play album"
                 addActionListener {
-                    MpdServer.addTracks(AlbumSelection.flatMap { ac : AlbumCover -> ac.album.songs },
-                        play = true)
+                    MpdServer.addAlbums(AlbumSelection, play = true)
                 }
             })
 
@@ -48,7 +47,7 @@ class KlarksonFrame : JFrame() {
                 icon = ImageIcon(Resource.get("gf24/playback_play_plus.png"))
                 toolTipText = "Add album to playlist"
                 addActionListener {
-                    MpdServer.addTracks(AlbumSelection.flatMap { ac : AlbumCover -> ac.album.songs })
+                    MpdServer.addAlbums(AlbumSelection)
                 }
             })
 
