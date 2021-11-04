@@ -204,9 +204,11 @@ fun printFinalStatistics() {
     println(AlbumCoverImageService.reportCacheStatistics())
 }
 
+lateinit var klarksonFrame : KlarksonFrame
+
 private fun createAndShowGUI() {
-    val frame = KlarksonFrame()
-    frame.isVisible = true
+    klarksonFrame = KlarksonFrame()
+    klarksonFrame.isVisible = true
 }
 
 fun main() {

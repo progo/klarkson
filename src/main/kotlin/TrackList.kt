@@ -31,14 +31,14 @@ class TrackList(lm : DefaultListModel<Song>) : JList<Song>(lm) {
                     object : JPopupMenu() {
                         init {
 
-                            add(JMenuItem("Add").apply {
+                            add(JMenuItem("Play").apply {
                                 icon = ImageIcon(Resource.get("gf24/playback_play.png"))
-                                addActionListener { addSelectedTracks() }
+                                addActionListener { addSelectedTracks(play=true) }
                             })
 
-                            add(JMenuItem("Play").apply {
+                            add(JMenuItem("Add").apply {
                                 icon = ImageIcon(Resource.get("gf24/playback_play_plus.png"))
-                                addActionListener { addSelectedTracks(play=true) }
+                                addActionListener { addSelectedTracks(play=false) }
                             })
                         }
                     } .show(this@TrackList, me.x, me.y)
