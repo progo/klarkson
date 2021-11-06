@@ -1,8 +1,10 @@
 package klarksonmainframe
 
+import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import javax.imageio.ImageIO
 
 const val COVER_DIRECTORY = "/home/progo/.cache/albumcovers/"
 fun albumCoverStorage(album: Album) = File(COVER_DIRECTORY + album.readableHash())
@@ -17,7 +19,7 @@ fun getOrDownloadCover(album: Album) : String? {
         return path.absolutePath
     }
 
-    val cover = downloadCover(album)
+    val cover = downloadCoverViaLastFM(album)
 
     // Download might have failed for whatever reason.
     // here [cover] either (== path) or (== null)
@@ -34,12 +36,24 @@ fun getOrDownloadCover(album: Album) : String? {
 
 
 /**
- * Download and store an album cover for [album]. If [directUri] is passed,
- * use this for cover. If not, we ask Last.Fm for covers.
+ * Download cover from using Last.FM API.
+ * Alternative Artist/Album search terms can be supplied.
  */
-fun downloadCover(album: Album, directUri: Uri? = null) : String? {
-    val uri = directUri ?: LastFmClient.getAlbumCoverUri(album.artist, album.album)
+fun downloadCoverViaLastFM(
+    album: Album,
+    altArtist: String? = null,
+    altAlbum: String? = null
+) : String? {
+    val uri = LastFmClient.getAlbumCoverUri(
+        altArtist ?: album.artist,
+        altAlbum ?: album.album)
+    return downloadCoverDirect(album, uri)
+}
 
+/**
+ * Attempt to download the image from given Uri.
+ **/
+fun downloadCoverDirect(album: Album, uri: Uri? = null) : String? {
     if (uri == null || uri == "") {
         println("Did not get cover for (${album.artist}, ${album.album})")
         return null
@@ -64,5 +78,11 @@ fun downloadCover(album: Album, directUri: Uri? = null) : String? {
 fun persistCover(album: Album, cover: File) : String {
     val path = albumCoverStorage(album)
     cover.copyTo(path, overwrite = true)
+    return path.absolutePath
+}
+
+fun persistCover(album: Album, cover: BufferedImage) : String {
+    val path = albumCoverStorage(album)
+    ImageIO.write(cover, "png", path)
     return path.absolutePath
 }

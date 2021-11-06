@@ -5,7 +5,6 @@ import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
-import java.awt.image.RescaleOp
 import java.io.File
 import java.lang.NullPointerException
 import java.util.concurrent.ExecutorService
@@ -49,6 +48,16 @@ data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
         AlbumCoverChangeNotificator.notifyListeners(listOf(this@AlbumCover))
     }
 
+    /**
+     * Copy image data from clipboard to a file
+     */
+    fun setCoverImageClipboardAsync() {
+        TODO("let's hack on this some day")
+    }
+
+    /**
+     * Copy cover from a local file
+     */
     fun setCoverImageAsync(image : File) {
         covergettingThreadPool.execute {
             persistCover(album, image)
@@ -56,11 +65,35 @@ data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
         }
     }
 
+    /**
+     * Download cover from a Uri
+     */
     fun setCoverImageAsync(imageUri : Uri) {
         covergettingThreadPool.execute {
-            downloadCover(album, directUri = imageUri)
+            downloadCoverDirect(album, imageUri)
             loadCover()
         }
+    }
+
+    /**
+     * Query Last.FM for a cover but with alternative search terms.
+     */
+    fun setCoverImageAlternativeAsync(artist: String, album: String) {
+        covergettingThreadPool.execute {
+            downloadCoverViaLastFM(this.album, artist, album)
+            loadCover()
+        }
+    }
+
+    /**
+     * Make a copy of a cover but with some decorations.
+     */
+    fun makeVariantCoverFrom(source: AlbumCover) : Boolean {
+        val img = source.cover
+        // Simple copying
+        persistCover(album, img)
+        loadCover()
+        return true
     }
 
     override fun equals(other: Any?): Boolean {

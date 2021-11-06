@@ -26,6 +26,7 @@ enum class Direction {
 object AlbumSelection : Iterable<AlbumCover> {
     private val selection : MutableSet<AlbumCover> = HashSet()
     private val listeners : MutableList<(AlbumSelection) -> Unit> = ArrayList()
+    private val listeners1time : MutableList<(AlbumSelection) -> Unit> = ArrayList()
 
     /**
      * Interface things
@@ -60,11 +61,14 @@ object AlbumSelection : Iterable<AlbumCover> {
     fun registerListener(func : (AlbumSelection) -> Unit) {
         listeners.add(func)
     }
-
+    fun registerOnetimeListener(func : (AlbumSelection) -> Unit) {
+        listeners1time.add(func)
+    }
     private fun listenerCallback() {
-        for (listener in listeners) {
-            listener(this)
-        }
+        val onetimelisteners = listeners1time.toList()
+        listeners1time.clear()
+        onetimelisteners.forEach { it(this) }
+        listeners.forEach { it(this) }
     }
 }
 

@@ -74,7 +74,7 @@ class KlarksonFrame : JFrame() {
                 add(JMenuItem("Exit").apply {
                     mnemonic = KeyEvent.VK_X
                     toolTipText = "Exit application"
-                    addActionListener { exitProcess(0) }
+                    addActionListener { dispatchEvent(WindowEvent(this@KlarksonFrame, WindowEvent.WINDOW_CLOSING)) }
                 })
             })
 
@@ -82,6 +82,49 @@ class KlarksonFrame : JFrame() {
             add(JMenu("Cover").apply {
                 mnemonic = KeyEvent.VK_C
                 icon = ImageIcon(Resource.get("gf16/picture.png"))
+
+                add(JMenuItem("Make a variation of existing cover").apply {
+                    mnemonic = KeyEvent.VK_M
+                    addActionListener {
+                        if (AlbumSelection.size() > 1) {
+                            println("Might get hairy with multiple selection.")
+                            return@addActionListener
+                        }
+
+                        val albumcoverTarget = AlbumSelection.firstOrNull() ?: return@addActionListener
+                        val popup = showMessage("Select a cover to vary from.", timeMillis=5000000)
+
+                        AlbumSelection.registerOnetimeListener {
+                            // a new selection has been made
+                            if (AlbumSelection.size() == 1) {
+                                val albumCoverSource = AlbumSelection.first()
+                                // println("Copying cover from $albumCoverSource to $albumcoverTarget...!")
+                                albumcoverTarget.makeVariantCoverFrom(albumCoverSource)
+                                popup.hide()
+                                // Restore original selection
+                                AlbumSelection.replace(setOf(albumcoverTarget))
+                            }
+                        }
+                    }
+                })
+
+                add(JMenuItem("Query server with alternative terms...").apply {
+                    toolTipText = "Search for covers with different search terms."
+                    addActionListener {
+                        val cover = AlbumSelection.firstOrNull() ?: return@addActionListener
+                        val aad = ArtistAlbumDialog(
+                            this@KlarksonFrame,
+                            cover.album.artist,
+                            cover.album.album
+                        )
+                        aad.isVisible = true
+
+                        if (aad.closedOkay) {
+                            println("redo search with [${aad.artist}] - [${aad.album}]...")
+                            cover.setCoverImageAlternativeAsync(aad.artist, aad.album)
+                        }
+                    }
+                })
 
                 add(JMenuItem("By URL...").apply {
                     mnemonic = KeyEvent.VK_U

@@ -37,7 +37,7 @@ fun JList<*>.realIndexUnderPoint(p : java.awt.Point) : Int {
 /**
  * Show a message popup that will go away after delay.
  */
-fun showMessage(msg: String, timeMillis : Int = 2000) {
+fun showMessage(msg: String, timeMillis : Int = 2000) : Popup {
 
     val msgfont = Font("sans serif", Font.PLAIN, 20)
 
@@ -62,4 +62,6 @@ fun showMessage(msg: String, timeMillis : Int = 2000) {
     swingDelay(timeMillis) {
         p.hide()
     }
+
+    return p
 }
