@@ -126,6 +126,13 @@ class KlarksonFrame : JFrame() {
                     }
                 })
 
+                add(JMenuItem("Paste from Clipboard").apply {
+                    addActionListener {
+                        val albumcover = AlbumSelection.firstOrNull() ?: return@addActionListener
+                        albumcover.setCoverImageFromClipboard()
+                    }
+                })
+
                 add(JMenuItem("By URL...").apply {
                     mnemonic = KeyEvent.VK_U
                     addActionListener {

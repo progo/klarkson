@@ -1,6 +1,8 @@
 package klarksonmainframe
 
 import java.awt.*
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Rectangle2D
@@ -13,6 +15,7 @@ import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.JTextArea
 import kotlin.random.Random
+import kotlin.reflect.typeOf
 
 
 data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
@@ -51,8 +54,24 @@ data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
     /**
      * Copy image data from clipboard to a file
      */
-    fun setCoverImageClipboardAsync() {
-        TODO("let's hack on this some day")
+    fun setCoverImageFromClipboard() {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        val flavors = clipboard.availableDataFlavors
+
+        if (flavors.isEmpty()) {
+            println("No content on clipboard.")
+            return
+        }
+
+        val flavor : DataFlavor = DataFlavor.imageFlavor
+
+        try {
+            val x = clipboard.getData(flavor) as BufferedImage
+            persistCover(album, x)
+            loadCover()
+        } catch (e : UnsupportedFlavorException) {
+            println("We probably didn't get an image.")
+        }
     }
 
     /**
