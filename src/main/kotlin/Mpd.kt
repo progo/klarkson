@@ -8,7 +8,7 @@ object MpdServer {
     private val mpd = Mpd.Builder().build()
 
     fun getAlbums(count: Int = 100): List<Album> {
-        val testSearch = "Mike Oldfield"
+        val testSearch = "Archie Shepp"
         val songs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, testSearch)
         return collectIntoAlbums(mpd, songs)
     }

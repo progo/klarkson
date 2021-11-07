@@ -127,10 +127,7 @@ class KlarksonFrame : JFrame() {
                 })
 
                 add(JMenuItem("Paste from Clipboard").apply {
-                    addActionListener {
-                        val albumcover = AlbumSelection.firstOrNull() ?: return@addActionListener
-                        albumcover.setCoverImageFromClipboard()
-                    }
+                    addActionListener(setCoverFromClipboard)
                 })
 
                 add(JMenuItem("By URL...").apply {
@@ -206,6 +203,8 @@ class KlarksonFrame : JFrame() {
     }
 
     private fun createUI() {
+        initActions(rootPane)
+
         val albumOrg = AlbumOrganizer()
         val sidepane = SidePane(
             menubar = createMenuBar(),
