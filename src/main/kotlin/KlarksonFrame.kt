@@ -8,12 +8,9 @@ import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.net.URL
-import javax.imageio.ImageIO
 import javax.swing.*
-import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.plaf.basic.BasicSplitPaneDivider
 import javax.swing.plaf.basic.BasicSplitPaneUI
-import kotlin.system.exitProcess
 
 object Resource {
     fun get(s: String) : URL = this.javaClass.classLoader.getResource(s)!!
@@ -85,45 +82,12 @@ class KlarksonFrame : JFrame() {
 
                 add(JMenuItem("Make a variation of existing cover").apply {
                     mnemonic = KeyEvent.VK_M
-                    addActionListener {
-                        if (AlbumSelection.size() > 1) {
-                            println("Might get hairy with multiple selection.")
-                            return@addActionListener
-                        }
-
-                        val albumcoverTarget = AlbumSelection.firstOrNull() ?: return@addActionListener
-                        val popup = showMessage("Select a cover to vary from.", timeMillis=5000000)
-
-                        AlbumSelection.registerOnetimeListener {
-                            // a new selection has been made
-                            if (AlbumSelection.size() == 1) {
-                                val albumCoverSource = AlbumSelection.first()
-                                // println("Copying cover from $albumCoverSource to $albumcoverTarget...!")
-                                albumcoverTarget.makeVariantCoverFrom(albumCoverSource)
-                                popup.hide()
-                                // Restore original selection
-                                AlbumSelection.replace(setOf(albumcoverTarget))
-                            }
-                        }
-                    }
+                    addActionListener(copyExistingCover)
                 })
 
-                add(JMenuItem("Query server with alternative terms...").apply {
+                add(JMenuItem("Search server for cover...").apply {
                     toolTipText = "Search for covers with different search terms."
-                    addActionListener {
-                        val cover = AlbumSelection.firstOrNull() ?: return@addActionListener
-                        val aad = ArtistAlbumDialog(
-                            this@KlarksonFrame,
-                            cover.album.artist,
-                            cover.album.album
-                        )
-                        aad.isVisible = true
-
-                        if (aad.closedOkay) {
-                            println("redo search with [${aad.artist}] - [${aad.album}]...")
-                            cover.setCoverImageAlternativeAsync(aad.artist, aad.album)
-                        }
-                    }
+                    addActionListener(askCoverServer)
                 })
 
                 add(JMenuItem("Paste from Clipboard").apply {
@@ -132,41 +96,12 @@ class KlarksonFrame : JFrame() {
 
                 add(JMenuItem("By URL...").apply {
                     mnemonic = KeyEvent.VK_U
-                    addActionListener {
-                        val uri = JOptionPane.showInputDialog(
-                            this@KlarksonFrame,
-                            "Paste URL to a cover image.",
-                            "Cover URL",
-                            JOptionPane.PLAIN_MESSAGE,
-                            null,
-                            null,
-                            ""
-                        ) as Uri
-
-                        if (uri == "") return@addActionListener
-
-                        val albcover = AlbumSelection.firstOrNull() ?: return@addActionListener
-                        albcover.setCoverImageAsync(uri)
-                    }
+                    addActionListener(setCoverFromURL)
                 })
 
                 add(JMenuItem("Select file...").apply {
                     mnemonic = KeyEvent.VK_F
-                    addActionListener {
-                        val albcover = AlbumSelection.firstOrNull() ?: return@addActionListener
-
-                        val c = JFileChooser().apply {
-                            val imageFilter = FileNameExtensionFilter("Image files", *ImageIO.getReaderFileSuffixes())
-                            addChoosableFileFilter(imageFilter)
-                            isAcceptAllFileFilterUsed = false
-                        }
-                        val ret = c.showOpenDialog(this@KlarksonFrame)
-
-                        if (ret == JFileChooser.APPROVE_OPTION) {
-                            val chosenFile = c.selectedFile
-                            albcover.setCoverImageAsync(chosenFile)
-                        }
-                    }
+                    addActionListener(setCoverFromFile)
                 })
             })
 
