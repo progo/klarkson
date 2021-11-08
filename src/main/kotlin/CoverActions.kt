@@ -92,8 +92,10 @@ val setCoverFromFile = object : AbstractAction() {
 }
 
 // Add global key bindings to the actions where it matters
+// Currently the JMenu almost covers us so let's not do this suboptimal WET way
+// of keybind initialization. Keep the code here for now.
 fun initActions(c : JComponent) {
-    val map = c.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-    map.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "setCoverFromClipboard")
-    c.actionMap.put("setCoverFromClipboard", setCoverFromClipboard)
+//    val map = c.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+//    map.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "setCoverFromClipboard")
+//    c.actionMap.put("setCoverFromClipboard", setCoverFromClipboard)
 }

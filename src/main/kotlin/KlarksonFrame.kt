@@ -92,6 +92,7 @@ class KlarksonFrame : JFrame() {
                 })
 
                 add(JMenuItem("Paste from Clipboard").apply {
+                    accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK)
                     addActionListener(setCoverFromClipboard)
                 })
 
