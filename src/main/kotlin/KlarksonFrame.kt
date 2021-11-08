@@ -11,6 +11,7 @@ import java.net.URL
 import javax.swing.*
 import javax.swing.plaf.basic.BasicSplitPaneDivider
 import javax.swing.plaf.basic.BasicSplitPaneUI
+import kotlin.system.exitProcess
 
 object Resource {
     fun get(s: String) : URL = this.javaClass.classLoader.getResource(s)!!
@@ -71,7 +72,7 @@ class KlarksonFrame : JFrame() {
                 add(JMenuItem("Exit").apply {
                     mnemonic = KeyEvent.VK_X
                     toolTipText = "Exit application"
-                    addActionListener { dispatchEvent(WindowEvent(this@KlarksonFrame, WindowEvent.WINDOW_CLOSING)) }
+                    addActionListener { this@KlarksonFrame.dispose() }
                 })
             })
 
@@ -172,8 +173,14 @@ class KlarksonFrame : JFrame() {
             }
 
             override fun windowClosing(we: WindowEvent) {
+                super.windowClosing(we)
+                printFinalStatistics()
+            }
+
+            override fun windowClosed(we: WindowEvent) {
                 super.windowClosed(we)
                 printFinalStatistics()
+                exitProcess(0)
             }
         })
     }
