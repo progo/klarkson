@@ -19,6 +19,7 @@ dependencies {
     implementation("org.hihn:javampd:6.1.23")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.5.2")
 }
 
 tasks.test {

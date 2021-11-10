@@ -69,6 +69,12 @@ class KlarksonFrame : JFrame() {
                 mnemonic = KeyEvent.VK_K
                 icon = ImageIcon(Resource.get("gf16/burst.png"))
 
+                add(JMenuItem("Check new").apply {
+                    mnemonic = KeyEvent.VK_C
+                    toolTipText = "Check new albums from MPD"
+                    addActionListener { AlbumStore.fetchNewAlbumsAsync() }
+                })
+
                 add(JMenuItem("Exit").apply {
                     mnemonic = KeyEvent.VK_X
                     toolTipText = "Exit application"
@@ -106,7 +112,6 @@ class KlarksonFrame : JFrame() {
                     addActionListener(setCoverFromFile)
                 })
             })
-
         }
     }
 

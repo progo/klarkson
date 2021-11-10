@@ -94,9 +94,27 @@ class SidePane(
 
         tabbpane.addTab("Search", searchResultsList)
 
-        for (a in MpdServer.getAlbums()) {
-            albumInboxList.addElement(a.createCover())
-        }
+        AlbumStore.registerChangeListener(object: AlbumStoreEventHandler {
+            private var message: Popup? = null
+            private var count : Int = 0
+
+            override fun newAlbum(album: Album) {
+                albumInboxList.addElement(album.createCover())
+                // Concurrent AlbumStoreEvents are going to mess this up?
+                count++
+            }
+
+            override fun syncStarts() {
+                count = 0
+                message = showMessage("Fetching new albums...", timeMillis = 900000)
+            }
+
+            override fun syncEnds() {
+                message?.hide()
+                showMessage("$count new albums!")
+                count = 0
+            }
+        })
 
         updateAlbumInboxTitle()
         updateSearchTabTitle()

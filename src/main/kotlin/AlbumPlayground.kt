@@ -238,10 +238,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         g2.fillRect(0, 0, width, 14)
         g2.color = Color.YELLOW
         g2.drawString( "Zoom level ${(viewportScaleFactor * 100).toInt()}%. " +
-                // "Drag mouse1 to move covers. " +
-                // "Drag mouse2 to pan. " +
                 "Viewport: ($viewportX, $viewportY). " +
-                "Selected covers: ${AlbumSelection.size()} " +
                 "Frame took ${"%.2f".format(paint_time_ms)}ms", 0, 10)
     }
 

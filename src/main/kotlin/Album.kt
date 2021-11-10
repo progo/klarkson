@@ -1,5 +1,7 @@
 package klarksonmainframe
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.bff.javampd.server.Mpd
 import org.bff.javampd.song.MpdSong
 import java.security.MessageDigest
@@ -55,7 +57,7 @@ data class Song(
     val runtime: Time
 ) {
     companion object {
-        fun read(mpd: Mpd, t: MpdSong) : Song {
+        fun read(t: MpdSong) : Song {
             return Song(
                 artist = t.artistName,
                 album = t.albumName,
@@ -63,7 +65,7 @@ data class Song(
                 file = t.file,
                 runtime = t.length,
                 year = t.year.toIntOrNull(),
-                albumArtist = mpd.getAlbumArtist(t),
+                albumArtist = MpdServer.getAlbumArtist(t),
                 comment = t.comment,
                 genre = t.genre,
                 discNumber = t.discNumber.toIntOrNull(),
@@ -88,12 +90,11 @@ But we will read Songs from MPD and build albums as they form.
 /**
  *  Take a list of MpdSongs from Mpd (assume the [songs] are reasonably ordered
  *  by MPD response) and collect them into Albums. The albums will be incomplete
- *  if songs is incomplete.
+ *  if [songs] is incomplete.
  */
-fun collectIntoAlbums(mpd: Mpd, songs: Collection<MpdSong>) : List<Album> {
-
+fun collectIntoAlbums(songs: Collection<MpdSong>) : List<Album> {
     val albums = songs
-        .map { song -> Song.read(mpd, song) }
+        .map { song -> Song.read(song) }
         .groupBy { s -> Pair(s.albumArtist ?: s.artist, s.album) }
         .map { (artistalbum, songs) ->
             val (artist, album) = artistalbum

@@ -15,7 +15,6 @@ import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.JTextArea
 import kotlin.random.Random
-import kotlin.reflect.typeOf
 
 
 data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
@@ -26,7 +25,7 @@ data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
     private var loadingState: AlbumCoverLoadingStatus = AlbumCoverLoadingStatus.LOADING
 
     companion object {
-        private val covergettingThreadPool : ExecutorService = Executors.newFixedThreadPool(2)
+        private val covergettingThreadPool : ExecutorService = Executors.newFixedThreadPool(10)
     }
 
     init {

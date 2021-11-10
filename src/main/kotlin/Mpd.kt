@@ -1,16 +1,30 @@
 package klarksonmainframe
 
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.channels.ReceiveChannel
 import org.bff.javampd.server.Mpd
 import org.bff.javampd.song.MpdSong
 import org.bff.javampd.song.SongSearcher
+import kotlinx.coroutines.channels.produce
 
 object MpdServer {
     private val mpd = Mpd.Builder().build()
 
-    fun getAlbums(count: Int = 100): List<Album> {
-        val testSearch = "Archie Shepp"
-        val songs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, testSearch)
-        return collectIntoAlbums(mpd, songs)
+    /**
+    Make a producer that streams Album objects as they form from the search.
+     */
+    fun produceAlbums() : ReceiveChannel<Album> = MainScope().produce {
+        val testSearch = "Pink Floyd"
+        val mpdsongs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, testSearch)
+
+        mpdsongs
+            .asSequence()
+            .map { song -> Song.read(song) }
+            .groupBy { s -> Pair(s.albumArtist ?: s.artist, s.album) }
+            .forEach {  (artistalbum, songs)  ->
+                val (artist, album) = artistalbum
+                send(Album.make(artist, album, songs))
+            }
     }
 
     /**
@@ -38,5 +52,13 @@ object MpdServer {
     fun addAlbums(albums: Iterable<AlbumCover>, play : Boolean = false) {
         val traxx = albums.flatMap { ac -> ac.album.songs }
         addTracks(traxx, play=play)
+    }
+
+    /**
+     * Get an Album artist information for given [song].
+     */
+    fun getAlbumArtist(song: MpdSong) : String {
+        val resp = mpd.commandExecutor.sendCommand("list albumartist file", song.file)
+        return stripAlbumArtistTag(resp.firstOrNull().toString())
     }
 }
