@@ -6,6 +6,10 @@ import org.bff.javampd.server.Mpd
 import org.bff.javampd.song.MpdSong
 import org.bff.javampd.song.SongSearcher
 import kotlinx.coroutines.channels.produce
+import mu.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
+
 
 object MpdServer {
     private val mpd = Mpd.Builder().build()
@@ -16,15 +20,34 @@ object MpdServer {
     fun produceAlbums() : ReceiveChannel<Album> = MainScope().produce {
         val testSearch = "Pink Floyd"
         val mpdsongs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, testSearch)
+        logger.debug { "MPD has been queried." }
 
-        mpdsongs
-            .asSequence()
-            .map { song -> Song.read(song) }
-            .groupBy { s -> Pair(s.albumArtist ?: s.artist, s.album) }
-            .forEach {  (artistalbum, songs)  ->
-                val (artist, album) = artistalbum
-                send(Album.make(artist, album, songs))
+        fun albumOf(song : Song?) =
+            if (song == null) Pair("", "") else Pair(song.albumArtist ?: song.artist, song.album)
+        fun albumOf(songs: Collection<Song>) =
+            albumOf(songs.firstOrNull())
+
+        // Low level work here to make grouping efficiently.
+        var songs : MutableList<Song> = ArrayList()
+        for (mpdsong in mpdsongs) {
+            val song = Song.read(mpdsong)
+
+            // New album begins here, send the old one away for processing
+            if (albumOf(song) != albumOf(songs)) {
+                if (songs.isNotEmpty()) {
+                    logger.debug { "An album collected, sending... ->" }
+                    send(Album.make(songs))
+                }
+
+                songs = ArrayList()
             }
+
+            songs.add(song)
+        }
+
+        // Send the last one.
+        logger.debug { "The last album collected, sending... ->" }
+        send(Album.make(songs))
     }
 
     /**

@@ -20,6 +20,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.5.2")
+
+    implementation("io.github.microutils:kotlin-logging:1.12.5")
+    // implementation("org.slf4j:slf4j-simple:1.7.5")
+    implementation("ch.qos.logback:logback-classic:1.0.13")
 }
 
 tasks.test {

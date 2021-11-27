@@ -1,11 +1,12 @@
 package klarksonmainframe
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
+import mu.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
+
 
 interface AlbumStoreEventHandler {
     /**
@@ -38,9 +39,13 @@ object AlbumStore {
     fun fetchNewAlbumsAsync() {
         MainScope().launch {
             listenerCallback { it.syncStarts() }
+            yield()
+
             MpdServer.produceAlbums().consumeEach { album ->
+                logger.debug { "<- received an album." }
                 listenerCallback { it.newAlbum(album) }
-                kotlinx.coroutines.delay(10)
+                yield()
+                delay(5)
             }
             listenerCallback { it.syncEnds() }
         }

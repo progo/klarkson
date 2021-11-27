@@ -25,6 +25,9 @@ data class Album(
                 songs = songs.toList()
             )
         }
+
+        fun make(songs: Collection<Song>) =
+            make(songs.first().albumArtist ?: songs.first().artist, songs.first().album, songs)
     }
 
     fun readableHash() : String {
