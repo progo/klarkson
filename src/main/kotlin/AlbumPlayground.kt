@@ -55,6 +55,15 @@ object AlbumSelection : Iterable<AlbumCover> {
         listenerCallback()
     }
 
+    fun toggle(c: AlbumCover) {
+        if (c in selection) {
+            selection.remove(c)
+        } else {
+            selection.add(c)
+        }
+        listenerCallback()
+    }
+
     /**
      * Poor listener mechanism. Swing and Java is full of examples of simple mechanims.
      */
@@ -530,7 +539,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
             return
         }
         if (me.isControlDown) {
-            AlbumSelection.add(alb)
+            AlbumSelection.toggle(alb)
         }
         else {
             AlbumSelection.replace(setOf(alb))

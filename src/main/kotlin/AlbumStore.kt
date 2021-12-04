@@ -2,7 +2,6 @@ package klarksonmainframe
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.swing.Swing
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
