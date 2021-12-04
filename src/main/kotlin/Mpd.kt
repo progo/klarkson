@@ -6,6 +6,7 @@ import org.bff.javampd.server.Mpd
 import org.bff.javampd.song.MpdSong
 import org.bff.javampd.song.SongSearcher
 import kotlinx.coroutines.channels.produce
+import kotlinx.coroutines.newSingleThreadContext
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -15,9 +16,10 @@ object MpdServer {
     private val mpd = Mpd.Builder().build()
 
     /**
-    Make a producer that streams Album objects as they form from the search.
+     *  Make a producer that streams Album objects as they form from the search.
+     *  Outsources the work in its own thread.
      */
-    fun produceAlbums() : ReceiveChannel<Album> = MainScope().produce {
+    fun produceAlbums() : ReceiveChannel<Album> = MainScope().produce(newSingleThreadContext("mpdworker")) {
         val testSearch = "Pink Floyd"
         val mpdsongs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, testSearch)
         logger.debug { "MPD has been queried." }
