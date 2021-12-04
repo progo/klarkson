@@ -170,6 +170,17 @@ class AlbumOrganizer : Iterable<AlbumCover> {
             }
         }
 
+        if (query.runtime != null) {
+            val pred = { ac : AlbumCover -> query.runtime.matches(ac.album) }
+
+            if (unionp) {
+                result.addAll(albums.filter(pred))
+            }
+            else {
+                result.retainAll(pred)
+            }
+        }
+
         // println("Got ${result.size} matches.")
         return result
     }

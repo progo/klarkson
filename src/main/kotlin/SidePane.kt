@@ -17,6 +17,7 @@ class SidePane(
 ) : JPanel() {
     private val txtArtist = JLabel(" ")
     private val txtAlbum = JLabel(" ")
+    private val txtAlbumInfo = JLabel(" ")
     private val txtCoverImage = object : JLabel("") {
         override fun getMinimumSize(): Dimension = Dimension(this@SidePane.width, this@SidePane.width)
         override fun getMaximumSize(): Dimension = Dimension(this@SidePane.width, this@SidePane.width)
@@ -31,6 +32,9 @@ class SidePane(
 
         txtArtist.foreground = Color.YELLOW
         txtArtist.background = Color.BLACK
+
+        txtAlbumInfo.foreground = Color.LIGHT_GRAY
+        txtAlbumInfo.background = Color.BLACK
     }
 
     private var shownCover : AlbumCover? = null
@@ -47,6 +51,7 @@ class SidePane(
             add(txtCoverImage)
             add(txtAlbum)
             add(txtArtist)
+            add(txtAlbumInfo)
         }
 
         val albumshowAndPlayback = JPanel().apply {
@@ -200,10 +205,12 @@ class SidePane(
             val a = c.album
             txtArtist.text = a.artist
             txtAlbum.text = a.album
+            txtAlbumInfo.text = a.runtime.toHuman()
         }
         else {
             txtAlbum.text = " "
             txtArtist.text = " "
+            txtAlbumInfo.text = " "
         }
         showCover(c)
     }
