@@ -27,6 +27,7 @@ interface AlbumStoreEventHandler {
 
 /**
  *  Layer where we keep and maintain albums from MPD or database or whereever.
+ *  TODO: actually maybe not necessary. AlbumOrganizer after all knows the situation.
  */
 object AlbumStore {
     private val listeners : MutableList<AlbumStoreEventHandler> = ArrayList()

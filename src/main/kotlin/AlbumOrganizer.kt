@@ -15,6 +15,18 @@ interface SearchEventHandler {
     fun nextResult()
 }
 
+
+/**
+ * Fires for pre/post save and load events.
+ */
+interface SaveLoadEventHandler {
+    fun beforeSave()
+    fun afterSave()
+    fun beforeLoad()
+    fun afterLoad()
+}
+
+
 /**
  * AlbumOrganizer is our data structure and collector for albums in the playground.
  */
@@ -25,6 +37,25 @@ class AlbumOrganizer : Iterable<AlbumCover> {
     // Search state
     private var previousSearch : String = " "
     private val searchListeners = ArrayList<SearchEventHandler>()
+    private val saveLoadListeners = ArrayList<SaveLoadEventHandler>()
+
+    /**
+     * Save to db.
+     */
+    fun save() {
+        saveLoadListenerCallback { it.beforeSave() }
+        Persist.persist(this)
+        saveLoadListenerCallback { it.afterSave() }
+    }
+
+    /**
+     * Load from db.
+     */
+    fun load() {
+        saveLoadListenerCallback { it.beforeLoad() }
+
+        saveLoadListenerCallback { it.afterLoad() }
+    }
 
     fun put(a: AlbumCover) {
         albums.add(a)
@@ -108,6 +139,19 @@ class AlbumOrganizer : Iterable<AlbumCover> {
         albums.sort()
     }
 
+    /**
+     * Listener code for save/load events
+     */
+
+    fun registerSaveLoadListener(sleh : SaveLoadEventHandler) {
+        saveLoadListeners.add(sleh)
+    }
+
+    private fun saveLoadListenerCallback(block : (SaveLoadEventHandler) -> Unit) {
+        saveLoadListeners.forEach { listener ->
+            listener.apply(block)
+        }
+    }
 
     /**
      * Listeners for search events

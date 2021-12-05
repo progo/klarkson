@@ -59,7 +59,7 @@ class KlarksonFrame : JFrame() {
         }
     }
 
-    private fun createMenuBar(): JMenuBar {
+    private fun createMenuBar(amo : AlbumOrganizer): JMenuBar {
         return JMenuBar().apply {
             background = Color.ORANGE
             foreground = Color.WHITE
@@ -112,6 +112,12 @@ class KlarksonFrame : JFrame() {
                     addActionListener(setCoverFromFile)
                 })
             })
+
+            add(JMenuItem("Save!").apply {
+                addActionListener {
+                    amo.save()
+                }
+            })
         }
     }
 
@@ -149,7 +155,7 @@ class KlarksonFrame : JFrame() {
 
         val albumOrg = AlbumOrganizer()
         val sidepane = SidePane(
-            menubar = createMenuBar(),
+            menubar = createMenuBar(albumOrg),
             toolbar = createToolbar(),
             albums = albumOrg
         )
@@ -208,5 +214,6 @@ private fun createAndShowGUI() {
 }
 
 fun main() {
+    Persist.initializeDatabase()
     EventQueue.invokeLater(::createAndShowGUI)
 }
