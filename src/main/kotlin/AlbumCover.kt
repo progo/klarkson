@@ -17,9 +17,11 @@ import javax.swing.JTextArea
 import kotlin.random.Random
 
 
-data class AlbumCover(val album: Album) : Comparable<AlbumCover> {
-    var x: Int = 0
+data class AlbumCover(
+    val album: Album,
+    var x: Int = 0,
     var y: Int = 0
+) : Comparable<AlbumCover> {
     val color: Color = Color(album.hashCode())
     var cover: BufferedImage = AlbumCoverImageService.coverLoadingImage
     private var loadingState: AlbumCoverLoadingStatus = AlbumCoverLoadingStatus.LOADING

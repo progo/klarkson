@@ -32,7 +32,7 @@ object MpdServer {
         // Low level work here to make grouping efficiently.
         var songs : MutableList<Song> = ArrayList()
         for (mpdsong in mpdsongs) {
-            val song = Song.read(mpdsong)
+            val song = Song.make(mpdsong)
 
             // New album begins here, send the old one away for processing
             if (albumOf(song) != albumOf(songs)) {

@@ -1,9 +1,6 @@
 package klarksonmainframe
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -27,7 +24,7 @@ private object DBAlbumCover : Table() {
     override val primaryKey  = PrimaryKey(id)
 }
 
-private object DBAlbum : Table() {
+object DBAlbum : Table() {
     val id = integer("id").autoIncrement()
     val artist = varchar("artist", length=256).index()
     val album = varchar("album", length=256).index()
@@ -37,14 +34,14 @@ private object DBAlbum : Table() {
     override val primaryKey  = PrimaryKey(id)
 }
 
-private object DBTrack : Table() {
+object DBTrack : Table() {
     val id = integer("id").autoIncrement()
     val artist = varchar("artist", length = 256)
     // val album = varchar("album", length = 256)
     val albumId = integer("albumId") references DBAlbum.id
     val title = varchar("title", length = 256).index()
     val file = varchar("file", length = 512).index()
-    // val albumArtist = varchar("albumArtist", length = 256)
+    val albumArtist = varchar("albumArtist", length = 256)
     val trackNumber = integer("trackNumber").nullable()
     val discNumber = integer("discNumber").nullable()
     val year = integer("year").nullable()
@@ -80,21 +77,23 @@ object Persist {
                 .limit(1)
                 .orderBy(DBVersion.created to SortOrder.DESC)
                 .firstOrNull()
-                ?.get(DBVersion.id)
-
-            if (latest == null) {
-                return@transaction
-            }
-
-            latest as Int
+                ?.get(DBVersion.id) ?: return@transaction
 
             println("Latest persisted version is v$latest")
 
-            // val albums = DBAlbum.selectAll
-            val records = DBAlbumCover.select { DBAlbumCover.versionId eq latest }
+            val albums = (DBAlbum innerJoin DBAlbumCover)
+                .select { DBAlbumCover.versionId eq latest }
 
-            records.forEach {
+            println("Loading ${albums.count()} records...")
 
+            albums.forEach {
+                val alb = Album.make(it)
+                val x = it[DBAlbumCover.x]
+                val y = it[DBAlbumCover.y]
+                println("- ($x, $y) $alb")
+
+                val ac = AlbumCover(alb, x, y)
+                amo.put(ac)
             }
         }
     }
@@ -104,7 +103,6 @@ object Persist {
             val version = DBVersion.insert {  } get DBVersion.id
 
             acs.forEach { albumcover ->
-
                 val album_id = DBAlbum.insert {
                     it[artist] = albumcover.album.artist
                     it[album] = albumcover.album.album
@@ -123,6 +121,7 @@ object Persist {
                 albumcover.album.songs.forEach { s ->
                     DBTrack.insert {
                         it[artist] = s.artist
+                        it[albumArtist] = s.albumArtist ?: ""
                         it[albumId] = album_id
                         it[title] = s.title
                         it[file] = s.file

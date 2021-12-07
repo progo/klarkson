@@ -1,6 +1,7 @@
 package klarksonmainframe
 
 import org.bff.javampd.song.MpdSong
+import org.jetbrains.exposed.sql.ResultRow
 import java.security.MessageDigest
 
 data class Album(
@@ -25,6 +26,17 @@ data class Album(
 
         fun make(songs: Collection<Song>) =
             make(songs.first().albumArtist ?: songs.first().artist, songs.first().album, songs)
+
+        fun make(r : ResultRow) : Album {
+            return Album(
+                artist = r[DBAlbum.artist],
+                album = r[DBAlbum.album],
+                year = r[DBAlbum.year],
+                discCount = r[DBAlbum.discCount] ?: 1,
+                runtime = r[DBAlbum.runtime],
+                songs = ArrayList<Song>()//TODO
+            )
+        }
     }
 
     fun readableHash() : String {
@@ -57,7 +69,23 @@ data class Song(
     val runtime: Time
 ) {
     companion object {
-        fun read(t: MpdSong) : Song {
+        fun make(r : ResultRow) : Song {
+            return Song(
+                artist = r[DBTrack.artist],
+                album = r[DBTrack.albumId].toString(),
+                title = r[DBTrack.title],
+                file = r[DBTrack.file],
+                runtime = r[DBTrack.runtime],
+                year = r[DBTrack.year],
+                albumArtist = r[DBTrack.albumArtist],//TODO can be derived via .albumId
+                comment = r[DBTrack.comments],
+                genre = r[DBTrack.genre],
+                discNumber = r[DBTrack.discNumber],
+                trackNumber = r[DBTrack.trackNumber]
+            )
+        }
+
+        fun make(t : MpdSong) : Song {
             return Song(
                 artist = t.artistName,
                 album = t.albumName,
@@ -85,24 +113,6 @@ Can't do that. We need an Album model for canvas.
 
 But we will read Songs from MPD and build albums as they form.
 */
-
-
-/**
- *  Take a list of MpdSongs from Mpd (assume the [songs] are reasonably ordered
- *  by MPD response) and collect them into Albums. The albums will be incomplete
- *  if [songs] is incomplete.
- */
-fun collectIntoAlbums(songs: Collection<MpdSong>) : List<Album> {
-    val albums = songs
-        .map { song -> Song.read(song) }
-        .groupBy { s -> Pair(s.albumArtist ?: s.artist, s.album) }
-        .map { (artistalbum, songs) ->
-            val (artist, album) = artistalbum
-            Album.make(artist, album, songs)
-        }
-
-    return albums
-}
 
 /**
  * Take an album's [songs] and try to analyze a release year for it.
