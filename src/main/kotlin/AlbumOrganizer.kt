@@ -53,7 +53,7 @@ class AlbumOrganizer : Iterable<AlbumCover> {
      */
     fun load() {
         saveLoadListenerCallback { it.beforeLoad() }
-
+        Persist.load(this)
         saveLoadListenerCallback { it.afterLoad() }
     }
 

@@ -69,7 +69,35 @@ object Persist {
         }
     }
 
-    // fun load() : Iterable<AlbumCover> { }
+    /**
+     * Load albums from database to an AlbumOrganizer.
+     */
+    fun load(amo : AlbumOrganizer) {
+        transaction {
+            val latest = DBVersion
+                .slice(DBVersion.id)
+                .selectAll()
+                .limit(1)
+                .orderBy(DBVersion.created to SortOrder.DESC)
+                .firstOrNull()
+                ?.get(DBVersion.id)
+
+            if (latest == null) {
+                return@transaction
+            }
+
+            latest as Int
+
+            println("Latest persisted version is v$latest")
+
+            // val albums = DBAlbum.selectAll
+            val records = DBAlbumCover.select { DBAlbumCover.versionId eq latest }
+
+            records.forEach {
+
+            }
+        }
+    }
 
     fun persist(acs : Iterable<AlbumCover>) {
         transaction {
