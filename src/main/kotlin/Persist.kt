@@ -67,6 +67,15 @@ object Persist {
     }
 
     /**
+     * This is in part not useful because AMO also has records of these things.
+     */
+    fun filesWeHave() : Set<String> {
+        return transaction {
+            DBTrack.slice(DBTrack.file).selectAll().map { it[DBTrack.file] }.toSet()
+        }
+    }
+
+    /**
      * Load albums from database to an AlbumOrganizer.
      */
     fun load(amo : AlbumOrganizer) {
