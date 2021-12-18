@@ -116,7 +116,11 @@ class SidePane(
 
             override fun syncEnds() {
                 message?.hide()
-                showMessage("$count new albums!")
+                if (count == 0) {
+                    showMessage("No new albums!")
+                } else {
+                    showMessage("$count new albums!")
+                }
                 count = 0
             }
         })

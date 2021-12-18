@@ -52,8 +52,10 @@ object MpdServer {
         }
 
         // Send the last one.
-        logger.debug { "The last album collected, sending... ->" }
-        send(Album.make(songs))
+        if (songs.isNotEmpty()) {
+            logger.debug { "The last album collected, sending... ->" }
+            send(Album.make(songs))
+        }
     }
 
     /**
