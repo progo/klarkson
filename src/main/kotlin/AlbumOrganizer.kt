@@ -57,6 +57,17 @@ class AlbumOrganizer : Iterable<AlbumCover> {
         saveLoadListenerCallback { it.afterLoad() }
     }
 
+    /**
+     * Integrity check means that we go over the files and see if anything has changed.
+     *
+     * Deleted files, moved files, and retagged files.
+     */
+    fun checkIntegrity() {
+        albums.forEach {  ac ->
+            ac.album.songs.forEach { println(it.file) }
+        }
+    }
+
     fun put(a: AlbumCover) {
         albums.add(a)
     }

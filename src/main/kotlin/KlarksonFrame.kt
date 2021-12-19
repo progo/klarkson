@@ -75,6 +75,12 @@ class KlarksonFrame : JFrame() {
                     addActionListener { AlbumStore.fetchNewAlbumsAsync() }
                 })
 
+                add(JMenuItem("Check integrity").apply {
+                    mnemonic = KeyEvent.VK_I
+                    toolTipText = "Check integrity of album files: metadata and file changes."
+                    addActionListener { amo.checkIntegrity() }
+                })
+
                 add(JMenuItem("Exit").apply {
                     mnemonic = KeyEvent.VK_X
                     toolTipText = "Exit application"
