@@ -27,14 +27,14 @@ data class Album(
         fun make(songs: Collection<Song>) =
             make(songs.first().albumArtist ?: songs.first().artist, songs.first().album, songs)
 
-        fun make(r : ResultRow) : Album {
+        fun make(r : ResultRow, ss : Iterable<Song>) : Album {
             return Album(
                 artist = r[DBAlbum.artist],
                 album = r[DBAlbum.album],
                 year = r[DBAlbum.year],
                 discCount = r[DBAlbum.discCount] ?: 1,
                 runtime = r[DBAlbum.runtime],
-                songs = ArrayList<Song>()//TODO
+                songs = ss.toList()
             )
         }
     }

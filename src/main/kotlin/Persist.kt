@@ -96,7 +96,11 @@ object Persist {
             println("Loading ${albums.count()} records...")
 
             albums.forEach {
-                val alb = Album.make(it)
+                val songs = DBTrack
+                    .select { DBTrack.albumId eq it[DBAlbum.id] }
+                    .map { r -> Song.make(r) }
+
+                val alb = Album.make(it, songs)
                 val x = it[DBAlbumCover.x]
                 val y = it[DBAlbumCover.y]
                 println("- ($x, $y) $alb")
