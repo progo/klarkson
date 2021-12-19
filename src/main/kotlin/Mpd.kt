@@ -17,12 +17,17 @@ object MpdServer {
 
     /**
      *  Make a producer that streams Album objects as they form from the search.
-     *  Outsources the work in its own thread.
+     *  Outsources the work to its own thread.
+     *
+     *  We stop collecting albums if the count reaches the [limit].
      */
-    fun produceAlbums() : ReceiveChannel<Album> = MainScope().produce(newSingleThreadContext("mpdworker")) {
-        val testSearch = "Pink Floyd"
-        val mpdsongs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, testSearch)
+    fun produceAlbums(limit : Int = 100) : ReceiveChannel<Album> = MainScope().produce(newSingleThreadContext("mpdworker")) {
+        // empty means "no filter"
+        val searchFilter = ""
+        val mpdsongs = mpd.songSearcher.search(SongSearcher.ScopeType.ARTIST, searchFilter)
+
         logger.debug { "MPD has been queried." }
+        var count = limit
 
         val playgroundFiles = Persist.filesWeHave()
 
@@ -43,6 +48,11 @@ object MpdServer {
                 if (songs.isNotEmpty()) {
                     logger.debug { "An album collected, sending... ->" }
                     send(Album.make(songs))
+
+                    if (--count == 0) {
+                        logger.debug { "We hit the limit that we can take!" }
+                        return@produce
+                    }
                 }
 
                 songs = ArrayList()
