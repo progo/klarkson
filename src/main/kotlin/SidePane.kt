@@ -184,7 +184,7 @@ class SidePane(
     }
 
     private fun updateTracks(albumcoverss: Iterable<AlbumCover>) {
-        val tracks = albumcoverss.flatMap { ac -> ac.album.songs + listOf(SongSeparator) }
+        val tracks = albumcoverss.flatMap { ac -> ac.album.songs + listOf(SongSeparator) }.dropLast(1)
         tracksLM.clear()
         tracks.forEach { tracksLM.addElement(it) }
     }
