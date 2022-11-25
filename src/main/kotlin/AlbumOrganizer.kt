@@ -60,6 +60,17 @@ class AlbumOrganizer : Iterable<AlbumCover> {
         saveLoadListenerCallback { it.afterLoad() }
     }
 
+
+    /**
+     *
+     */
+    fun removeAlbums(albums: Iterable<AlbumCover>) {
+        //TODO
+        albums.forEach { ac ->
+            ac
+        }
+    }
+
     /**
      * Integrity check means that we go over the files and see if anything has changed.
      *

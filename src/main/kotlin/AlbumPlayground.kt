@@ -33,6 +33,7 @@ object AlbumSelection : Iterable<AlbumCover> {
      */
 
     fun size() = selection.size
+    fun selectedAny() = selection.size > 0
     operator fun contains(c: AlbumCover) = c in selection
     override operator fun iterator() : Iterator<AlbumCover> = selection.iterator()
 
@@ -280,6 +281,8 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
             KeyEvent.VK_DOWN -> findAdjacentAlbumCover(Direction.DOWN)
             KeyEvent.VK_ENTER -> centerAroundSelected()
             KeyEvent.VK_SPACE -> bringSelectedCoversTogether()
+
+            KeyEvent.VK_DELETE -> deleteSelectedCovers()
         }
 
         if (ke.keyCode == KeyEvent.VK_SLASH || (ke.isControlDown && ke.keyCode == KeyEvent.VK_F)) {
@@ -287,6 +290,14 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         }
 
         repaint()
+    }
+
+    private fun deleteSelectedCovers() {
+        if (!AlbumSelection.selectedAny()) {
+            return
+        }
+
+        albums.removeAlbums(AlbumSelection)
     }
 
     private fun zoomIn(x: Int, y: Int) {
