@@ -44,9 +44,15 @@ fun downloadCoverViaLastFM(
     altArtist: String? = null,
     altAlbum: String? = null
 ) : String? {
-    val uri = LastFmClient.getAlbumCoverUri(
-        altArtist ?: album.artist,
-        altAlbum ?: album.album)
+    val artistName = altArtist ?: album.artist
+    val albumName = altAlbum ?: album.album
+
+    /** last.fm introduced stricter reqs  **/
+    if (artistName == "" || albumName == "") {
+        return null
+    }
+
+    val uri = LastFmClient.getAlbumCoverUri(artistName, albumName)
     return downloadCoverDirect(album, uri)
 }
 
