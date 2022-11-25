@@ -1,5 +1,6 @@
 package klarksonmainframe
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import java.awt.*
 import java.awt.dnd.*
 import java.awt.event.*
@@ -275,6 +276,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
     override fun keyPressed(ke: KeyEvent) {
         val shift = if (ke.isShiftDown) { 200 } else { 100 }
         when (ke.keyCode) {
+            KeyEvent.VK_R -> jumpToRandomSpot()
             KeyEvent.VK_LEFT -> findAdjacentAlbumCover(Direction.LEFT)
             KeyEvent.VK_RIGHT -> findAdjacentAlbumCover(Direction.RIGHT)
             KeyEvent.VK_UP -> findAdjacentAlbumCover(Direction.UP)
@@ -596,6 +598,13 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
     private fun centerAroundCover(ac: AlbumCover?, animate: Boolean = true) {
         val cover = ac ?: return
         centerAroundPoint(ac.x, ac.y, animate)
+    }
+
+    private fun jumpToRandomSpot(select: Boolean = true) {
+        val cover = albums.shuffled().firstOrNull() ?: return
+        if (select)
+            AlbumSelection.replace(listOf(cover))
+        centerAroundCover(cover)
     }
 
     /**
