@@ -1,8 +1,11 @@
 package klarksonmainframe
 
+import mu.KotlinLogging
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
+
+private val logger = KotlinLogging.logger {}
 
 interface SearchEventHandler {
     /**
@@ -63,9 +66,46 @@ class AlbumOrganizer : Iterable<AlbumCover> {
      * Deleted files, moved files, and retagged files.
      */
     fun checkIntegrity() {
-        albums.forEach {  ac ->
-            ac.album.songs.forEach { println(it.file) }
+        val faultyAlbums = mutableSetOf<AlbumCover>()
+        val emptyAlbums = mutableSetOf<AlbumCover>()
+
+        for (ac in albums) {
+            val album = ac.album
+            logger.debug { "Checking integrity of ${album.album}..." }
+
+            if (album.songs.isEmpty()) {
+                emptyAlbums.add(ac)
+                continue
+            }
+
+            album.songs.forEach { song ->
+                when (MpdServer.checkFile(song)) {
+                    FileStatus.MISSING -> { faultyAlbums.add(ac) ; return@forEach }
+                    FileStatus.TAGS -> { faultyAlbums.add(ac) ; return@forEach }
+                    FileStatus.OK -> Unit
+                }
+            }
         }
+
+        logger.debug { "Empty albums (bad) = ${emptyAlbums.size}" }
+        logger.debug { "Faulty albums (reconstruct) = ${faultyAlbums.size}" }
+
+        // A faulty album may for example divide a seq of songs in two, so when
+        // we deal with faulty albums, we have to figure a way to reconstruct
+        // related "okay" albums too.
+        faultyAlbums.forEach {
+            println("- ${it.album}")
+        }
+
+        val faultySongs = faultyAlbums.flatMap {  ac -> ac.album.songs }
+
+        // this will result nothing if there are several albums
+        val dir = faultySongs
+            .map { s -> s.file }
+            .reduce { p1, p2 -> p1.commonPrefixWith(p2) }
+
+        logger.debug { "We can redo `$dir` maybe." }
+
     }
 
     fun put(a: AlbumCover) {

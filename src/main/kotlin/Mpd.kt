@@ -69,6 +69,24 @@ object MpdServer {
     }
 
     /**
+     *
+     */
+    fun checkFile(song : Song) : FileStatus {
+        val results = mpd.songSearcher.search(SongSearcher.ScopeType.FILENAME, song.file)
+
+        if (results.isEmpty())  {
+            return FileStatus.MISSING
+        }
+
+        val mpdsong = results.first()
+        val song2 = Song.make(mpdsong)
+        if (song2 != song)
+            return FileStatus.TAGS
+
+        return FileStatus.OK
+    }
+
+    /**
      * Add given Songs to MPD playlist, and start playing them, if [play].
      */
     fun addTracks(tracks : Collection<Song>, play : Boolean = false, quiet : Boolean = false) {
@@ -102,4 +120,10 @@ object MpdServer {
         val resp = mpd.commandExecutor.sendCommand("list albumartist file", song.file)
         return stripAlbumArtistTag(resp.firstOrNull().toString())
     }
+}
+
+enum class FileStatus {
+    OK,
+    MISSING,
+    TAGS
 }

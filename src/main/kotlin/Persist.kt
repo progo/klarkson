@@ -98,7 +98,7 @@ object Persist {
             albums.forEach {
                 val songs = DBTrack
                     .select { DBTrack.albumId eq it[DBAlbum.id] }
-                    .map { r -> Song.make(r) }
+                    .map { r -> Song.make(r, it[DBAlbum.album]) }
 
                 val alb = Album.make(it, songs)
                 val x = it[DBAlbumCover.x]

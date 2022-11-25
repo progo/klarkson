@@ -69,10 +69,10 @@ data class Song(
     val runtime: Time
 ) {
     companion object {
-        fun make(r : ResultRow) : Song {
+        fun make(r : ResultRow, albumName : String) : Song {
             return Song(
                 artist = r[DBTrack.artist],
-                album = r[DBTrack.albumId].toString(),
+                album = albumName,
                 title = r[DBTrack.title],
                 file = r[DBTrack.file],
                 runtime = r[DBTrack.runtime],
