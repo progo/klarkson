@@ -82,6 +82,7 @@ class KlarksonFrame : JFrame() {
                 })
 
                 add(JMenuItem("Exit").apply {
+                    accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_MASK)
                     mnemonic = KeyEvent.VK_X
                     toolTipText = "Exit application"
                     addActionListener { this@KlarksonFrame.dispose() }
