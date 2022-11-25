@@ -88,6 +88,13 @@ class KlarksonFrame : JFrame() {
                 })
             })
 
+            add(JMenu("Selection").apply {
+                mnemonic = KeyEvent.VK_S
+                icon = ImageIcon(Resource.get("gf16/3x3_grid.png"))
+
+                add(JMenuItem("Delete selected...").apply {
+                })
+            })
 
             add(JMenu("Cover").apply {
                 mnemonic = KeyEvent.VK_C
