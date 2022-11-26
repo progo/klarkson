@@ -1,6 +1,5 @@
 package klarksonmainframe
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import java.awt.*
 import java.awt.dnd.*
 import java.awt.event.*
