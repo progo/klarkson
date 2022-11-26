@@ -29,8 +29,6 @@ object MpdServer {
         logger.debug { "MPD has been queried." }
         var count = limit
 
-        val playgroundFiles = Persist.filesWeHave()
-
         fun albumOf(song : Song?) =
             if (song == null) Pair("", "") else Pair(song.albumArtist ?: song.artist, song.album)
         fun albumOf(songs: Collection<Song>) =
@@ -39,7 +37,7 @@ object MpdServer {
         // Low level work here to make grouping efficiently.
         var songs : MutableList<Song> = ArrayList()
         for (mpdsong in mpdsongs) {
-            if (mpdsong.file in playgroundFiles)
+            if (AlbumStore.knowFile(mpdsong.file))
                 continue
             val song = Song.make(mpdsong)
 

@@ -31,6 +31,8 @@ interface AlbumStoreEventHandler {
  */
 object AlbumStore {
     private val listeners : MutableList<AlbumStoreEventHandler> = ArrayList()
+    // private val knownSongs: MutableSet<Song> = HashSet()
+    private val knownFiles: MutableSet<String> = HashSet()
 
     /**
      * Fetch new content from MPD.
@@ -43,14 +45,29 @@ object AlbumStore {
 
             MpdServer.produceAlbums().consumeEach { album ->
                 logger.debug { "<- received an album." }
+                storeAlbum(album)
                 listenerCallback { it.newAlbum(album) }
                 yield()
-                delay(5)
+                delay(1)
             }
             listenerCallback { it.syncEnds() }
+            logger.debug { "AlbumStore knows ${knownFiles.size} files."}
         }
     }
 
+    /** Do we know this file already? */
+    fun knowFile(f: String): Boolean {
+        return f in knownFiles
+    }
+
+    /**
+     * Process a newly gathered Album [a] somehow.
+     */
+    private fun storeAlbum(a: Album) {
+        knownFiles.addAll(a.songs.map { it.file })
+    }
+
+    ///// Event handler things
     fun registerChangeListener(aseh : AlbumStoreEventHandler) {
         listeners.add(aseh)
     }
