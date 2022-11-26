@@ -31,7 +31,11 @@ interface SaveLoadEventHandler {
 
 
 /**
- * AlbumOrganizer is our data structure and collector for albums in the playground.
+ * AlbumOrganizer (AMO) is our data structure and collector for albums
+ * in the playground.
+ *
+ * We will need to figure if this has to be coupled with Playground,
+ * or can we reuse this for Inbox.
  */
 class AlbumOrganizer : Iterable<AlbumCover> {
     // TreeSet is a strong idea here
@@ -62,10 +66,10 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 
 
     /**
-     *
+     * TODO Remove from Playground or generally?
+     * We need to think through the architecture here.
      */
     fun removeAlbums(albums: Iterable<AlbumCover>) {
-        //TODO
         albums.forEach { ac ->
             ac
         }
