@@ -250,6 +250,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         g2.color = Color.YELLOW
         g2.drawString( "Zoom level ${(viewportScaleFactor * 100).toInt()}%. " +
                 "Viewport: ($viewportX, $viewportY). " +
+                "${albums.size()} covers. " +
                 "Frame took ${"%.2f".format(paint_time_ms)}ms", 0, 10)
     }
 
