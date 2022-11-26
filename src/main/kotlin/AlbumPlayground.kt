@@ -422,20 +422,30 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
     private fun bringSelectedCoversTogether() {
         if (AlbumSelection.size() < 2)  return
 
-        val rows : Int = sqrt(AlbumSelection.size().toDouble()).roundToInt()
-        val cols : Int = AlbumSelection.size() / rows
+        val sz = AlbumSelection.size().toDouble()
 
-        var x = 0
-        var y = -1
+        val rows : Int = sqrt(sz).roundToInt()
+        val cols : Int = (sz / rows).roundToInt()
+
+        val points = AlbumSelection.map { ac -> Point(ac.x, ac.y) }
+        val xs = points.map { it.x }
+        val ys = points.map { it.y }
+
+        // the second term is some voodoo that tries to keep an offset from happening
+        val centerX = median(xs) - (ALBUM_COVER_SIZE * cols/4.0).roundToInt()
+        val centerY = median(ys) - (ALBUM_COVER_SIZE * rows/4.0).roundToInt()
+
+        var row = 0
+        var col = 0
 
         for (album in AlbumSelection) {
-            album.x = viewportX + x * (ALBUM_COVER_SIZE + Random.nextInt(2, 10))
-            album.y = viewportY + y * (ALBUM_COVER_SIZE + Random.nextInt(2, 10))
+            album.x = centerX + row * ALBUM_COVER_SIZE + Random.nextInt(2, 10)
+            album.y = centerY + col * ALBUM_COVER_SIZE + Random.nextInt(2, 10)
 
-            x += 1
-            if (x >= cols) {
-                x = 0
-                y += 1
+            col += 1
+            if (col >= cols) {
+                col = 0
+                row += 1
             }
         }
 

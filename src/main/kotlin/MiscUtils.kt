@@ -28,3 +28,15 @@ fun String.trimString(extra : String) : String {
     else
         return trim()
 }
+
+/**
+ * Calculate a median
+ */
+fun median(nums: Collection<Int>) : Int {
+    val ns = nums.sorted()
+    if (ns.size % 2 == 0) {
+        return (ns[ns.size / 2] + ns[(ns.size - 1) / 2]) / 2
+    } else {
+        return ns[ns.size / 2]
+    }
+}
