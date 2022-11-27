@@ -284,7 +284,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
             KeyEvent.VK_ENTER -> centerAroundSelected()
             KeyEvent.VK_SPACE -> bringSelectedCoversTogether()
 
-            KeyEvent.VK_DELETE -> deleteSelectedCovers()
+            KeyEvent.VK_DELETE -> removeSelectedCovers()
         }
 
         if (ke.keyCode == KeyEvent.VK_SLASH || (ke.isControlDown && ke.keyCode == KeyEvent.VK_F)) {
@@ -294,7 +294,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         repaint()
     }
 
-    private fun deleteSelectedCovers() {
+    private fun removeSelectedCovers() {
         if (!AlbumSelection.selectedAny()) {
             return
         }

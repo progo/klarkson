@@ -66,13 +66,11 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 
 
     /**
-     * TODO Remove from Playground or generally?
-     * We need to think through the architecture here.
+     * Remove from Playground (and bring them back to inbox)
      */
-    fun removeAlbums(albums: Iterable<AlbumCover>) {
-        albums.forEach { ac ->
-            ac
-        }
+    fun removeAlbums(albums2go: Iterable<AlbumCover>) {
+        albums2go.forEach { albums.remove(it) }
+        AlbumStore.put(albums2go.map { it.album })
     }
 
     /**

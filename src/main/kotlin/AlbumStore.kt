@@ -55,6 +55,14 @@ object AlbumStore {
         }
     }
 
+    fun put(albs: Iterable<Album>) {
+        listenerCallback { it.syncStarts() }
+        albs.forEach { a ->
+            listenerCallback { it.newAlbum(a) }
+        }
+        listenerCallback { it.syncEnds() }
+    }
+
     /** Do we know this file already? */
     fun knowFile(f: String): Boolean {
         return f in knownFiles
