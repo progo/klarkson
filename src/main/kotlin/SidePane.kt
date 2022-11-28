@@ -1,6 +1,8 @@
 package klarksonmainframe
 
 import java.awt.*
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
@@ -10,8 +12,11 @@ import javax.swing.event.ListDataListener
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
 
+lateinit var showInboxTab : AbstractAction
+lateinit var showTracksTab : AbstractAction
+lateinit var showSearchTab : AbstractAction
+
 class SidePane(
-    menubar: JMenuBar,
     toolbar: JToolBar,
     private val albums : AlbumOrganizer
 ) : JPanel() {
@@ -136,8 +141,9 @@ class SidePane(
             add(searchBox, BorderLayout.SOUTH)
         }
 
-        add(menubar, BorderLayout.NORTH)
         add(inner, BorderLayout.CENTER)
+
+        initTabActions(tabbpane)
 
         searchBox.addActionListener {
             albums.startOrContinueSearch(searchBox.text.trim())
@@ -169,6 +175,10 @@ class SidePane(
             override fun intervalRemoved(p0: ListDataEvent?) { updateAlbumInboxTitle() }
             override fun contentsChanged(p0: ListDataEvent?) { updateAlbumInboxTitle() }
         })
+    }
+
+    fun attachMenubar(m : JMenuBar) {
+        add(m, BorderLayout.NORTH)
     }
 
     /**
@@ -217,6 +227,24 @@ class SidePane(
             txtAlbumInfo.text = " "
         }
         showCover(c)
+    }
+
+    private fun initTabActions(c : JTabbedPane) {
+        showInboxTab = object : AbstractAction() {
+            override fun actionPerformed(ae: ActionEvent) {
+                c.selectedIndex = 0
+            }
+        }
+        showTracksTab = object : AbstractAction() {
+            override fun actionPerformed(ae: ActionEvent) {
+                c.selectedIndex = 1
+            }
+        }
+        showSearchTab = object : AbstractAction() {
+            override fun actionPerformed(ae: ActionEvent) {
+                c.selectedIndex = 2
+            }
+        }
     }
 
     /**

@@ -127,6 +127,21 @@ class KlarksonFrame : JFrame() {
                 })
             })
 
+            add(JMenu("View").apply {
+                add(JMenuItem("Inbox").apply {
+                    accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)
+                    addActionListener(showInboxTab)
+                })
+                add(JMenuItem("Tracks").apply {
+                    accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0)
+                    addActionListener(showTracksTab)
+                })
+                add(JMenuItem("Search").apply {
+                    accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0)
+                    addActionListener(showSearchTab)
+                })
+            })
+
             add(JMenuItem("Save!").apply {
                 addActionListener {
                     amo.save()
@@ -169,10 +184,10 @@ class KlarksonFrame : JFrame() {
 
         val albumOrg = AlbumOrganizer()
         val sidepane = SidePane(
-            menubar = createMenuBar(albumOrg),
             toolbar = createToolbar(),
             albums = albumOrg
         )
+        sidepane.attachMenubar(createMenuBar(albumOrg))
         val playground = AlbumPlayground(albums = albumOrg)
 
         // TODO make sure we run this on the side
