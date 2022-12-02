@@ -75,6 +75,23 @@ class KlarksonFrame : JFrame() {
                     addActionListener { AlbumStore.fetchNewAlbumsAsync() }
                 })
 
+                add(JMenuItem("Check for specific...").apply {
+                    toolTipText = "Check for specific new content"
+                    addActionListener {
+                        val query = JOptionPane.showInputDialog(
+                            this@KlarksonFrame,
+                            "Enter MPD search term:",
+                            "Search",
+                            JOptionPane.PLAIN_MESSAGE,
+                            null,
+                            null,
+                            "") as String
+                        AlbumStore.fetchNewAlbumsAsync(query)
+                    }
+                })
+
+                add(JSeparator())
+
                 add(JMenuItem("Check integrity").apply {
                     mnemonic = KeyEvent.VK_I
                     toolTipText = "Check integrity of album files: metadata and file changes."

@@ -38,12 +38,12 @@ object AlbumStore {
      * Fetch new content from MPD.
      * This is done concurrently and suitable listeners are being in the loop.
      */
-    fun fetchNewAlbumsAsync() {
+    fun fetchNewAlbumsAsync(query: String? = null) {
         MainScope().launch {
             listenerCallback { it.syncStarts() }
             yield()
 
-            MpdServer.produceAlbums().consumeEach { album ->
+            MpdServer.produceAlbums(query).consumeEach { album ->
                 logger.debug { "<- received an album." }
                 storeAlbum(album)
                 listenerCallback { it.newAlbum(album) }
