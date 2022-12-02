@@ -69,10 +69,21 @@ object AlbumStore {
     }
 
     /**
+     * Load from DB and populate inbox
+     */
+    fun load() {
+        val albums = Persist.loadInbox()
+        albums.forEach { alb ->
+            listenerCallback { it.newAlbum(alb) }
+        }
+    }
+
+    /**
      * Process a newly gathered Album [a] somehow.
      */
     private fun storeAlbum(a: Album) {
         knownFiles.addAll(a.songs.map { it.file })
+        Persist.persist(a)
     }
 
     ///// Event handler things

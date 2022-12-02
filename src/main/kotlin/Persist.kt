@@ -26,6 +26,7 @@ private object DBAlbumCover : Table() {
 
 object DBAlbum : Table() {
     val id = integer("id").autoIncrement()
+    // val inboxed = bool("inboxed").index()
     val artist = varchar("artist", length=256).index()
     val album = varchar("album", length=256).index()
     val year = integer("year").nullable()
@@ -102,18 +103,61 @@ object Persist {
         }
     }
 
+    fun loadInbox(): Collection<Album> {
+        val albums = ArrayList<Album>()
+        transaction {
+            val albs = DBAlbum.selectAll()
+            albs.forEach {
+                val songs = DBTrack
+                    .select { DBTrack.albumId eq it[DBAlbum.id] }
+                    .map { r -> Song.make(r, it[DBAlbum.album]) }
+                val alb = Album.make(it, songs)
+                albums.add(alb)
+            }
+        }
+        return albums
+    }
+
+    /** Store one album. Returns an id. */
+    fun persist(a: Album): Int {
+        var albumID : Int = -1
+        transaction {
+            albumID = DBAlbum.insert {
+                it[artist] = a.artist
+                it[album] = a.album
+                it[year] = a.year
+                it[discCount] = a.discCount
+                it[runtime] = a.runtime
+            } get DBAlbum.id
+
+            a.songs.forEach { s ->
+                DBTrack.insert {
+                    it[artist] = s.artist
+                    it[albumArtist] = s.albumArtist ?: ""
+                    it[albumId] = albumID
+                    it[title] = s.title
+                    it[file] = s.file
+                    it[trackNumber] = s.trackNumber
+                    it[discNumber] = s.discNumber
+                    it[year] = s.year
+                    it[comments] = s.comment
+                    it[genre] = s.genre
+                    it[runtime] = s.runtime
+                }
+            }
+        }
+        return albumID
+    }
+
+    /**
+     * Store iterable of albumcovers
+     */
     fun persist(acs : Iterable<AlbumCover>) {
         transaction {
             val version = DBVersion.insert {  } get DBVersion.id
 
             acs.forEach { albumcover ->
-                val album_id = DBAlbum.insert {
-                    it[artist] = albumcover.album.artist
-                    it[album] = albumcover.album.album
-                    it[year] = albumcover.album.year
-                    it[discCount] = albumcover.album.discCount
-                    it[runtime] = albumcover.album.runtime
-                } get DBAlbum.id
+                val album_id = persist(albumcover.album)
 
                 DBAlbumCover.insert {
                     it[x] = albumcover.x
@@ -122,21 +166,6 @@ object Persist {
                     it[versionId] = version
                 }
 
-                albumcover.album.songs.forEach { s ->
-                    DBTrack.insert {
-                        it[artist] = s.artist
-                        it[albumArtist] = s.albumArtist ?: ""
-                        it[albumId] = album_id
-                        it[title] = s.title
-                        it[file] = s.file
-                        it[trackNumber] = s.trackNumber
-                        it[discNumber] = s.discNumber
-                        it[year] = s.year
-                        it[comments] = s.comment
-                        it[genre] = s.genre
-                        it[runtime] = s.runtime
-                    }
-                }
             }
         }
     }

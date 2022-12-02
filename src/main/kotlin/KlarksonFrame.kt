@@ -209,6 +209,7 @@ class KlarksonFrame : JFrame() {
 
         // TODO make sure we run this on the side
         albumOrg.load()
+        AlbumStore.load()
 
         sidepane.minimumSize = Dimension(200, 200)
         playground.minimumSize = Dimension(400, 400)
