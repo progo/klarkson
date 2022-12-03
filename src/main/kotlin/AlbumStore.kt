@@ -93,7 +93,7 @@ object AlbumStore {
      */
     private fun storeAlbum(a: Album) {
         knownFiles.addAll(a.songs.map { it.file })
-        Persist.persist(a, inInbox = true)
+        Persist.persist(a, x=null, y=null)
     }
 
     ///// Event handler things

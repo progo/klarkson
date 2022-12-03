@@ -23,7 +23,7 @@ object AlbumInboxSelection {
         val lm : DefaultListModel<AlbumCover> = lc.model as DefaultListModel<AlbumCover>
         for (index in lc.selectedIndices.reversed()) {
             val album = lm.get(index).album
-            Persist.persist(album, inInbox = false)
+            Persist.persist(album, x=0, y=0)    // TODO: can we check the real drop coords?
             lm.remove(index)
         }
     }

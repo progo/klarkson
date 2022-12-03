@@ -51,7 +51,7 @@ class AlbumOrganizer : Iterable<AlbumCover> {
      */
     fun save() {
         saveLoadListenerCallback { it.beforeSave() }
-        Persist.persist(this, inInbox = false)
+        Persist.persist(this)
         saveLoadListenerCallback { it.afterSave() }
     }
 
@@ -71,7 +71,7 @@ class AlbumOrganizer : Iterable<AlbumCover> {
     fun removeAlbums(albums2go: Iterable<AlbumCover>) {
         albums2go.forEach {
             albums.remove(it)
-            Persist.persist(it.album, inInbox = true)
+            Persist.persist(it)
         }
         AlbumStore.put(albums2go.map { it.album })
     }

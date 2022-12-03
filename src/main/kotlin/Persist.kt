@@ -8,15 +8,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
 
 
-private object DBAlbumCover : Table() {
-    val id = integer("id").autoIncrement()
-    val x  = integer("x").index()
-    val y  = integer("y").index()
-    val albumId = (integer("albumId") references DBAlbum.id).uniqueIndex()
-
-    override val primaryKey  = PrimaryKey(id)
-}
-
 object DBAlbum : Table() {
     val id = integer("id").autoIncrement()
     val artist = varchar("artist", length=256).index()
@@ -26,10 +17,10 @@ object DBAlbum : Table() {
     val runtime = integer("runtime").index()
     override val primaryKey  = PrimaryKey(id)
 
-    // inboxed is:
-    // true: the album is currently in inbox
-    // false: the album is placed in the playground
-    val inboxed = bool("inboxed").index()
+    // when x,y are defined, album is on the playground.
+    // our code checks for x
+    val x = integer("x").nullable().index()
+    val y = integer("y").nullable()
 }
 
 object DBTrack : Table() {
@@ -59,7 +50,7 @@ object Persist {
             Connection.TRANSACTION_SERIALIZABLE
 
         transaction {
-            SchemaUtils.create(DBAlbum, DBAlbumCover, DBTrack)
+            SchemaUtils.create(DBAlbum, DBTrack)
         }
     }
 
@@ -68,8 +59,7 @@ object Persist {
      */
     fun load(amo : AlbumOrganizer) {
         transaction {
-            val albums = (DBAlbum innerJoin DBAlbumCover)
-                .select { DBAlbum.inboxed eq false }
+            val albums = DBAlbum.select { DBAlbum.x neq null }
 
             albums.forEach {
                 val songs = DBTrack
@@ -77,8 +67,8 @@ object Persist {
                     .map { r -> Song.make(r, it[DBAlbum.album]) }
 
                 val alb = Album.make(it, songs)
-                val x = it[DBAlbumCover.x]
-                val y = it[DBAlbumCover.y]
+                val x = it[DBAlbum.x] as Int
+                val y = it[DBAlbum.y] as Int
 
                 val ac = AlbumCover(alb, x, y)
                 amo.put(ac)
@@ -89,7 +79,7 @@ object Persist {
     fun loadInbox(): Collection<Album> {
         val albums = ArrayList<Album>()
         transaction {
-            val albs = DBAlbum.select { DBAlbum.inboxed eq true }
+            val albs = DBAlbum.select { DBAlbum.x eq null }
             albs.forEach {
                 val songs = DBTrack
                     .select { DBTrack.albumId eq it[DBAlbum.id] }
@@ -102,7 +92,11 @@ object Persist {
     }
 
     /** Store one album. Returns an id. */
-    fun persist(a: Album, inInbox: Boolean): Int {
+    fun persist(ac: AlbumCover): Int {
+        return persist(ac.album, ac.x, ac.y)
+    }
+
+    fun persist(a: Album, x: Int?, y: Int?): Int {
         var albumID : Int = -1
         transaction {
 
@@ -119,13 +113,15 @@ object Persist {
             if (alb != null) {
                 albumID = alb[DBAlbum.id]
                 DBAlbum.update ({ DBAlbum.id eq albumID }) {
-                    it[inboxed] = inInbox
+                    it[DBAlbum.x] = x
+                    it[DBAlbum.y] = y
                 }
             }
             else {
                 albumID = DBAlbum.insert {
                     it[artist] = a.artist
-                    it[inboxed] = inInbox
+                    it[DBAlbum.x] = x
+                    it[DBAlbum.y] = y
                     it[album] = a.album
                     it[year] = a.year
                     it[discCount] = a.discCount
@@ -156,20 +152,10 @@ object Persist {
     /**
      * Store iterable of albumcovers
      */
-    fun persist(acs : Iterable<AlbumCover>, inInbox: Boolean) {
+    fun persist(acs : Iterable<AlbumCover>) {
         transaction {
-            acs.forEach { albumcover ->
-                // Because we're storing playground items here, inInbox should be always false.
-                val album_id = persist(albumcover.album, inInbox)
-
-                DBAlbumCover.deleteWhere { DBAlbumCover.albumId eq album_id }
-
-                DBAlbumCover.insert {
-                    it[x] = albumcover.x
-                    it[y] = albumcover.y
-                    it[albumId] = album_id
-                }
-
+            acs.forEach { ac ->
+                persist(ac)
             }
         }
     }
