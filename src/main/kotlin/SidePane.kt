@@ -114,9 +114,10 @@ class SidePane(
                 count++
             }
 
-            override fun syncStarts() {
+            override fun syncStarts(type: SyncEventType) {
                 count = 0
-                message = showMessage("Fetching new albums...", timeMillis = 900000)
+                if (type == SyncEventType.MPD)
+                    message = showMessage("Fetching new albums...", timeMillis = 900000)
             }
 
             override fun syncEnds() {

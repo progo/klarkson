@@ -675,7 +675,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         finishDragNDrop()
         // repaint()
 
-        AlbumInboxSelection.deleteSelected()
+        AlbumInboxSelection.acceptDragNDrop()
         requestFocusInWindow()
     }
 

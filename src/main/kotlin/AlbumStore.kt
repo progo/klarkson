@@ -7,6 +7,15 @@ import mu.KotlinLogging
 private val logger = KotlinLogging.logger {}
 
 
+/**
+ * Sync or load event type, ie the source of incoming albums.
+ */
+enum class SyncEventType  {
+    MPD,
+    Database
+}
+
+
 interface AlbumStoreEventHandler {
     /**
      * New album was added to store.
@@ -15,12 +24,13 @@ interface AlbumStoreEventHandler {
     // fun newAlbum(albums: Collection<Album>)
 
     /**
-     * Sync from MPD to Store starts.
+     * Sync from, for example MPD, to Store starts.
+     * [type] will tell you more about it.
      */
-    fun syncStarts()
+    fun syncStarts(type: SyncEventType)
 
     /**
-     * Sync from MPD to Store ends.
+     * Sync events, no more albums incoming.
      */
     fun syncEnds()
 }
@@ -40,7 +50,7 @@ object AlbumStore {
      */
     fun fetchNewAlbumsAsync(query: String? = null) {
         MainScope().launch {
-            listenerCallback { it.syncStarts() }
+            listenerCallback { it.syncStarts(SyncEventType.MPD) }
             yield()
 
             MpdServer.produceAlbums(query).consumeEach { album ->
@@ -56,7 +66,7 @@ object AlbumStore {
     }
 
     fun put(albs: Iterable<Album>) {
-        listenerCallback { it.syncStarts() }
+        listenerCallback { it.syncStarts(SyncEventType.Database) }
         albs.forEach { a ->
             listenerCallback { it.newAlbum(a) }
         }
@@ -83,7 +93,7 @@ object AlbumStore {
      */
     private fun storeAlbum(a: Album) {
         knownFiles.addAll(a.songs.map { it.file })
-        Persist.persist(a)
+        Persist.persist(a, inInbox = true)
     }
 
     ///// Event handler things

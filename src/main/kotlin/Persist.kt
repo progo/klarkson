@@ -8,17 +8,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
 
 
-private object DBVersion : Table() {
-    val id = integer("id").autoIncrement()
-    val created = datetime("created").defaultExpression(CurrentDateTime())
-    override val primaryKey  = PrimaryKey(id)
-}
-
 private object DBAlbumCover : Table() {
     val id = integer("id").autoIncrement()
     val x  = integer("x").index()
     val y  = integer("y").index()
-    val versionId = (integer("versionId") references DBVersion.id).index()
     val albumId = (integer("albumId") references DBAlbum.id).uniqueIndex()
 
     override val primaryKey  = PrimaryKey(id)
@@ -26,19 +19,22 @@ private object DBAlbumCover : Table() {
 
 object DBAlbum : Table() {
     val id = integer("id").autoIncrement()
-    // val inboxed = bool("inboxed").index()
     val artist = varchar("artist", length=256).index()
     val album = varchar("album", length=256).index()
     val year = integer("year").nullable()
     val discCount = integer("discCount").nullable()
     val runtime = integer("runtime").index()
     override val primaryKey  = PrimaryKey(id)
+
+    // inboxed is:
+    // true: the album is currently in inbox
+    // false: the album is placed in the playground
+    val inboxed = bool("inboxed").index()
 }
 
 object DBTrack : Table() {
     val id = integer("id").autoIncrement()
     val artist = varchar("artist", length = 256)
-    // val album = varchar("album", length = 256)
     val albumId = integer("albumId") references DBAlbum.id
     val title = varchar("title", length = 256).index()
     val file = varchar("file", length = 512).index()
@@ -63,29 +59,17 @@ object Persist {
             Connection.TRANSACTION_SERIALIZABLE
 
         transaction {
-            SchemaUtils.create(DBVersion, DBAlbum, DBAlbumCover, DBTrack)
+            SchemaUtils.create(DBAlbum, DBAlbumCover, DBTrack)
         }
     }
 
     /**
-     * Load albums from database to an AlbumOrganizer.
+     * Load albums from database to playground via AlbumOrganizer.
      */
     fun load(amo : AlbumOrganizer) {
         transaction {
-            val latest = DBVersion
-                .slice(DBVersion.id)
-                .selectAll()
-                .limit(1)
-                .orderBy(DBVersion.created to SortOrder.DESC)
-                .firstOrNull()
-                ?.get(DBVersion.id) ?: return@transaction
-
-            println("Latest persisted version is v$latest")
-
             val albums = (DBAlbum innerJoin DBAlbumCover)
-                .select { DBAlbumCover.versionId eq latest }
-
-            println("Loading ${albums.count()} records...")
+                .select { DBAlbum.inboxed eq false }
 
             albums.forEach {
                 val songs = DBTrack
@@ -95,7 +79,6 @@ object Persist {
                 val alb = Album.make(it, songs)
                 val x = it[DBAlbumCover.x]
                 val y = it[DBAlbumCover.y]
-                println("- ($x, $y) $alb")
 
                 val ac = AlbumCover(alb, x, y)
                 amo.put(ac)
@@ -106,7 +89,7 @@ object Persist {
     fun loadInbox(): Collection<Album> {
         val albums = ArrayList<Album>()
         transaction {
-            val albs = DBAlbum.selectAll()
+            val albs = DBAlbum.select { DBAlbum.inboxed eq true }
             albs.forEach {
                 val songs = DBTrack
                     .select { DBTrack.albumId eq it[DBAlbum.id] }
@@ -119,32 +102,53 @@ object Persist {
     }
 
     /** Store one album. Returns an id. */
-    fun persist(a: Album): Int {
+    fun persist(a: Album, inInbox: Boolean): Int {
         var albumID : Int = -1
         transaction {
-            albumID = DBAlbum.insert {
-                it[artist] = a.artist
-                it[album] = a.album
-                it[year] = a.year
-                it[discCount] = a.discCount
-                it[runtime] = a.runtime
-            } get DBAlbum.id
 
-            a.songs.forEach { s ->
-                DBTrack.insert {
-                    it[artist] = s.artist
-                    it[albumArtist] = s.albumArtist ?: ""
-                    it[albumId] = albumID
-                    it[title] = s.title
-                    it[file] = s.file
-                    it[trackNumber] = s.trackNumber
-                    it[discNumber] = s.discNumber
-                    it[year] = s.year
-                    it[comments] = s.comment
-                    it[genre] = s.genre
-                    it[runtime] = s.runtime
+            // See if it's already in the system.
+            // TODO if misbehaving, add check for song filepath.
+            val alb = DBAlbum
+                .select { DBAlbum.artist eq a.artist }
+                .andWhere { DBAlbum.album eq a.album }
+                .andWhere { DBAlbum.year eq a.year }
+                .andWhere { DBAlbum.discCount eq a.discCount }
+                .andWhere { DBAlbum.runtime eq a.runtime }
+                .firstOrNull()
+
+            if (alb != null) {
+                albumID = alb[DBAlbum.id]
+                DBAlbum.update ({ DBAlbum.id eq albumID }) {
+                    it[inboxed] = inInbox
                 }
             }
+            else {
+                albumID = DBAlbum.insert {
+                    it[artist] = a.artist
+                    it[inboxed] = inInbox
+                    it[album] = a.album
+                    it[year] = a.year
+                    it[discCount] = a.discCount
+                    it[runtime] = a.runtime
+                } get DBAlbum.id
+
+                a.songs.forEach { s ->
+                    DBTrack.insert {
+                        it[artist] = s.artist
+                        it[albumArtist] = s.albumArtist ?: ""
+                        it[albumId] = albumID
+                        it[title] = s.title
+                        it[file] = s.file
+                        it[trackNumber] = s.trackNumber
+                        it[discNumber] = s.discNumber
+                        it[year] = s.year
+                        it[comments] = s.comment
+                        it[genre] = s.genre
+                        it[runtime] = s.runtime
+                    }
+                }
+            }
+
         }
         return albumID
     }
@@ -152,18 +156,18 @@ object Persist {
     /**
      * Store iterable of albumcovers
      */
-    fun persist(acs : Iterable<AlbumCover>) {
+    fun persist(acs : Iterable<AlbumCover>, inInbox: Boolean) {
         transaction {
-            val version = DBVersion.insert {  } get DBVersion.id
-
             acs.forEach { albumcover ->
-                val album_id = persist(albumcover.album)
+                // Because we're storing playground items here, inInbox should be always false.
+                val album_id = persist(albumcover.album, inInbox)
+
+                DBAlbumCover.deleteWhere { DBAlbumCover.albumId eq album_id }
 
                 DBAlbumCover.insert {
                     it[x] = albumcover.x
                     it[y] = albumcover.y
                     it[albumId] = album_id
-                    it[versionId] = version
                 }
 
             }
