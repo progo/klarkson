@@ -3,6 +3,8 @@ package klarksonmainframe
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.consumeEach
 import mu.KotlinLogging
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 
 private val logger = KotlinLogging.logger {}
 
@@ -41,8 +43,6 @@ interface AlbumStoreEventHandler {
  */
 object AlbumStore {
     private val listeners : MutableList<AlbumStoreEventHandler> = ArrayList()
-    // private val knownSongs: MutableSet<Song> = HashSet()
-    private val knownFiles: MutableSet<String> = HashSet()
 
     /**
      * Fetch new content from MPD.
@@ -61,7 +61,6 @@ object AlbumStore {
                 delay(1)
             }
             listenerCallback { it.syncEnds() }
-            logger.debug { "AlbumStore knows ${knownFiles.size} files."}
         }
     }
 
@@ -73,9 +72,11 @@ object AlbumStore {
         listenerCallback { it.syncEnds() }
     }
 
-    /** Do we know this file already? */
+    /** Do we know this file already? If we do, don't introduce a duplicate. */
     fun knowFile(f: String): Boolean {
-        return f in knownFiles
+        return transaction {
+            return@transaction DBTrack.select { DBTrack.file eq f }.count() > 0L
+        }
     }
 
     /**
@@ -92,7 +93,6 @@ object AlbumStore {
      * Process a newly gathered Album [a] somehow.
      */
     private fun storeAlbum(a: Album) {
-        knownFiles.addAll(a.songs.map { it.file })
         Persist.persist(a, x=null, y=null)
     }
 
