@@ -71,7 +71,7 @@ class AlbumOrganizer : Iterable<AlbumCover> {
     fun removeAlbums(albums2go: Iterable<AlbumCover>) {
         albums2go.forEach {
             albums.remove(it)
-            Persist.persist(it)
+            Persist.persist(it.album, null, null)
         }
         AlbumStore.put(albums2go.map { it.album })
     }
