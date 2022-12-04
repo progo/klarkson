@@ -98,6 +98,13 @@ class KlarksonFrame : JFrame() {
                     addActionListener { amo.checkIntegrity() }
                 })
 
+                add(JMenuItem("Save").apply {
+                    toolTipText = "Trigger a manual save"
+                    addActionListener {
+                        amo.save()
+                    }
+                })
+
                 add(JMenuItem("Exit").apply {
                     accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_MASK)
                     mnemonic = KeyEvent.VK_X
@@ -159,11 +166,6 @@ class KlarksonFrame : JFrame() {
                 })
             })
 
-            add(JMenuItem("Save!").apply {
-                addActionListener {
-                    amo.save()
-                }
-            })
         }
     }
 

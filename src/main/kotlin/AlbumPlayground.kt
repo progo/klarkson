@@ -110,6 +110,26 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
     private val coversOnTheDrag: MutableList<AlbumCover> = mutableListOf()
     private var coverDragPoint: Point? = null
 
+    /**
+     * Record an altered album cover here so that its coordinate changes can be saved in batch.
+     */
+    private val saveQueue: MutableSet<AlbumCover> = HashSet()
+    private val saveTimer = Timer(5000) {
+        albums.save()
+        saveQueue.clear()
+        repaint()
+    }.apply {
+        isRepeats = false
+    }
+
+    private fun saveCoverDelayed(ac: AlbumCover) { saveCoverDelayed(setOf(ac)) }
+    private fun saveCoverDelayed(ac: Iterable<AlbumCover>) {
+        saveQueue.addAll(ac)
+        // Restart instead of start: start counting from zero
+        saveTimer.restart()
+    }
+
+
     private var viewportX = 0
     private var viewportY = 0
     private var lastMouseX = -1
@@ -250,6 +270,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         g2.drawString( "Zoom level ${(viewportScaleFactor * 100).toInt()}%. " +
                 "Viewport: ($viewportX, $viewportY). " +
                 "${albums.size()} covers. " +
+                "${saveQueue.size} unsaved. " +
                 "Frame took ${"%.2f".format(paint_time_ms)}ms", 0, 10)
     }
 
@@ -277,6 +298,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
         val shift = if (ke.isShiftDown) { 200 } else { 100 }
         when (ke.keyCode) {
             KeyEvent.VK_R -> jumpToRandomSpot()
+            KeyEvent.VK_HOME -> jumpToRandomSpot()
             KeyEvent.VK_LEFT -> findAdjacentAlbumCover(Direction.LEFT)
             KeyEvent.VK_RIGHT -> findAdjacentAlbumCover(Direction.RIGHT)
             KeyEvent.VK_UP -> findAdjacentAlbumCover(Direction.UP)
@@ -449,6 +471,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
             }
         }
 
+        saveCoverDelayed(AlbumSelection)
         albums.reorganize()
         repaint()
     }
@@ -506,6 +529,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
      * Move is finished.
      */
     private fun endMoveCover() {
+        saveCoverDelayed(coversOnTheMove)
         coversOnTheMove.clear()
         albums.reorganize()
         repaint()
@@ -680,6 +704,7 @@ class AlbumPlayground(private val albums : AlbumOrganizer): JPanel(), KeyListene
     }
 
     private fun finishDragNDrop() {
+        saveCoverDelayed(coversOnTheDrag)
         coversOnTheDrag.clear()
         coverDragPoint = null
         repaint()
