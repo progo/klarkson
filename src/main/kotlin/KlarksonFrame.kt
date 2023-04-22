@@ -184,8 +184,7 @@ class KlarksonFrame : JFrame() {
     private fun createAndAdjustSplitPane(left: JComponent, right: JComponent): JSplitPane {
         return JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right).apply {
             dividerSize = 8
-
-            ui = object : BasicSplitPaneUI() {
+            this.setUI(object : BasicSplitPaneUI() {
                 override fun createDefaultDivider(): BasicSplitPaneDivider {
                     return object : BasicSplitPaneDivider(this) {
                         override fun paint(g: Graphics) {
@@ -194,7 +193,7 @@ class KlarksonFrame : JFrame() {
                         }
                     }
                 }
-            }
+            })
         }
     }
 
