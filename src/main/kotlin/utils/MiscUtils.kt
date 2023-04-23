@@ -1,11 +1,15 @@
-package klarksonmainframe
+package klarksonmainframe.utils
 
 // From https://stackoverflow.com/a/23088000
 fun Double.format(digits: Int) = "%.${digits}f".format(this)
 
 
 /**
- * Split a string retaining the delims
+ * Split a string retaining the delims.
+ * Delim[iter] can be a longer string than a character. The delim will be
+ * included in front of a piece:
+ *
+ * `1+2+3` splits into [1 +2 +3] and not into [1+ 2+ 3]
  */
 fun String.splitWithDelims(delim : String) : List<String> {
     if (isBlank())
@@ -20,7 +24,10 @@ fun String.splitWithDelims(delim : String) : List<String> {
 }
 
 
-
+/**
+ * Trim a prefix from the beginning of the string,
+ * and give a usual trimming afterward.
+ */
 fun String.trimString(extra : String) : String {
     if (startsWith(extra)) {
         return substring(extra.length).trim()
@@ -30,7 +37,7 @@ fun String.trimString(extra : String) : String {
 }
 
 /**
- * Calculate a median
+ * Calculate a median as an Integer
  */
 fun median(nums: Collection<Int>) : Int {
     val ns = nums.sorted()

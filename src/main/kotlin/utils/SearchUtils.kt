@@ -1,7 +1,7 @@
-package klarksonmainframe
+package klarksonmainframe.utils
 
-import java.lang.NumberFormatException
-import javax.print.attribute.IntegerSyntax
+import klarksonmainframe.Album
+import klarksonmainframe.toMinutes
 
 /*
 

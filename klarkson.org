@@ -1,0 +1,11 @@
+* Klarkson
+** Sovitetaan testejä koodikantaan
+[2023-04-23 Sun]
+
+Meillä on pari testiluokkaa koodattuna, mutta ne ovat olleet kokeiluja
+ilman assertioita. Siitä on ainakin vallan helppo aloittaa.
+
+** TODO JavaMPD:n päivitys uusimpaan
+
+Koska mentiin viimein uusimpaan JVM:ään niin uusimmat JavaMPD-versiot
+ovat myös käytettävissäni.

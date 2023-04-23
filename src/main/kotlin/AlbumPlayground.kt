@@ -1,5 +1,6 @@
 package klarksonmainframe
 
+import klarksonmainframe.utils.median
 import java.awt.*
 import java.awt.dnd.*
 import java.awt.event.*

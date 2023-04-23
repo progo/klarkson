@@ -1,5 +1,8 @@
 package klarksonmainframe
 
+import klarksonmainframe.utils.ParsedSearchQuery
+import klarksonmainframe.utils.SearchMode
+import klarksonmainframe.utils.parseQuery
 import mu.KotlinLogging
 import java.util.*
 import kotlin.collections.ArrayList

@@ -15,6 +15,7 @@ val exposedVersion = "0.36.1"
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.0")
 
     // sqlite and orm
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
@@ -38,7 +39,7 @@ dependencies {
 }
 
 tasks.test {
-    useJUnit()
+    useJUnitPlatform()
 }
 
 tasks.withType<KotlinCompile>() {
