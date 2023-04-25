@@ -2,7 +2,8 @@ package klarksonmainframe
 
 import klarksonmainframe.utils.ParsedSearchQuery
 import klarksonmainframe.utils.SearchMode
-import klarksonmainframe.utils.parseQuery
+import klarksonmainframe.utils.parseSearch
+import klarksonmainframe.utils.search
 import mu.KotlinLogging
 import java.util.*
 import kotlin.collections.ArrayList
@@ -256,7 +257,7 @@ class AlbumOrganizer : Iterable<AlbumCover> {
 
         // ...or  start a new one.
         else {
-            val sr = SearchResults(searchAlbums(parseQuery(q)))
+            val sr = SearchResults(searchAlbums(search(q)))
             println("Start a new search with [$q] => ${sr.size} results.")
             previousSearch = q
             notifySearchEventListeners(results = sr, new=true)
@@ -268,12 +269,10 @@ class AlbumOrganizer : Iterable<AlbumCover> {
         val unionp = query.matchMode == SearchMode.MATCH_ANY
 
         if (query.artist != null) {
-            // println("Searching by artist [${query.artist}]")
             result.addAll(albums.filter { ac -> query.artist.matches(ac.album.artist) })
         }
 
         if (query.album != null) {
-            // println("Searching by album [${query.album}]")
             val pred = { ac : AlbumCover -> query.album.matches(ac.album.album) }
 
             if (unionp) {

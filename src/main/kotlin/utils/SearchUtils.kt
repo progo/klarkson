@@ -63,7 +63,19 @@ class RuntimeRangeQuery(
     override fun matches(a: Album): Boolean = a.runtime.toMinutes().between(timeMin.toDouble(), timeMax.toDouble())
 }
 
+/**
+ *  A search statement that's parsed into components.
+ *  Strings may be empty.
+ */
+data class ParsedSearch(
+    val artist: String,
+    val album: String,
+    val runtime: String
+)
 
+/**
+ * Regexified and ready-to-query searches
+ */
 data class ParsedSearchQuery(
     val artist: Regex?,
     val album: Regex?,
@@ -72,63 +84,26 @@ data class ParsedSearchQuery(
 )
 
 
-fun parseQuery(query: String) : ParsedSearchQuery {
-    val q = query.trim()
-    var mode = SearchMode.MATCH_ANY
-    var artist : String? = null
-    var album : String? = null
-    var runtimeStr = ""
-    var ambiguousQuery = false
+/**
+ * Assemble parsing and query building in one...
+ */
+fun search(searchQuery: String) : ParsedSearchQuery =
+    buildQuery(parseSearch(searchQuery))
 
-    q.splitWithDelims(FLAG_STRING).forEach { component ->
-        val comp = component.trim()
 
-        if (comp.startsWith(ARTIST_FLAG)) {
-            artist = comp.trimString(ARTIST_FLAG)
-        }
-
-        else if (comp.startsWith(ALBUM_FLAG)) {
-            album = comp.trimString(ALBUM_FLAG)
-        }
-
-        else if (comp.startsWith(RUNTIME_FLAG)) {
-            runtimeStr = comp.trimString(RUNTIME_FLAG)
-        }
-
-        // In this case we have an ill-written query, where we can
-        // just guess and come up with a DWIM style logic.
-        else {
-            /*
-            if (artist != null && album == null)
-                album = comp
-
-            if (artist == null && album != null)
-                artist = comp
-             */
-
-            artist = comp
-            album = comp
-            ambiguousQuery = true
-        }
-    }
-
-    if (ambiguousQuery) {
-        // We could message or something.
-    }
+/**
+ *  Build regex matchers and runtime matchers from parsed search input.
+ */
+fun buildQuery(ps: ParsedSearch) : ParsedSearchQuery {
 
     var runtimeQ : RuntimeQuery? = null
 
-    if (runtimeStr.isNotBlank()) {
-
-        fun String.isNumba() : Boolean {
-            // if (isBlank()) return false
-            if (toIntOrNull() == null) return false
-            return true
-        }
+    if (ps.runtime.isNotBlank()) {
+        fun String.isNumba() = toIntOrNull() != null
 
         // we look for a range of runtimes
-        if (runtimeStr.contains('-')) {
-            val (min, max) = runtimeStr.split('-')
+        if (ps.runtime.contains('-')) {
+            val (min, max) = ps.runtime.split('-')
 //            try {
 //                val min = Integer.valueOf(minStr)
 //                val max = Integer.valueOf(maxStr)
@@ -146,26 +121,74 @@ fun parseQuery(query: String) : ParsedSearchQuery {
 
         // we look for approx runtimes around one value
         else {
-            if (runtimeStr.isNumba()) {
-                runtimeQ = RuntimeApproxQuery(approxTime = runtimeStr.toInt())
+            if (ps.runtime.isNumba()) {
+                runtimeQ = RuntimeApproxQuery(approxTime = ps.runtime.toInt())
             }
         }
     }
-    println("[$runtimeStr] => $runtimeQ")
 
-    val delim = " +".toRegex()
-    val artistComps = artist?.split(delim) ?: emptyList()
-    val albumComps = album?.split(delim) ?: emptyList()
+    /**
+     * Make a regex from [s] to loosely build a fuzzy matcher:
+     * 'aa bee' turns into a regex that matches 'aa.+bee' somewhere inside the haystack
+     */
+    fun regexify(s: String): Regex? {
+        if (s.isBlank())
+            return null
 
-    fun regexify(comps: List<String>) = if (comps.isEmpty()) { null } else {
-        Regex( "^.*" + comps.joinToString(".+") + ".*$",
+        val delim = " +".toRegex()
+        val words = s.split(delim)
+        return Regex( "^.*" + words.joinToString(".+") + ".*$",
             RegexOption.IGNORE_CASE
-        )}
+        )
+    }
 
     return ParsedSearchQuery(
-        artist=regexify(artistComps),
-        album=regexify(albumComps),
-        runtime=runtimeQ,
-        matchMode=mode
+        artist = regexify(ps.artist),
+        album = regexify(ps.album),
+        runtime = runtimeQ,
+        matchMode = SearchMode.MATCH_ANY
     )
+}
+
+
+/**
+ *
+ * Parse a user-inputed search term into components
+ */
+fun parseSearch(query: String) : ParsedSearch {
+    var artist : String = ""
+    var album : String = ""
+    var runtimeStr = ""
+    var ambiguousQuery = false
+
+    query.trim().splitWithDelims(FLAG_STRING).forEach { component ->
+        val comp = component.trim()
+
+        if (comp.startsWith(ARTIST_FLAG)) {
+            artist = comp.trimString(ARTIST_FLAG)
+        }
+
+        else if (comp.startsWith(ALBUM_FLAG)) {
+            album = comp.trimString(ALBUM_FLAG)
+        }
+
+        else if (comp.startsWith(RUNTIME_FLAG)) {
+            runtimeStr = comp.trimString(RUNTIME_FLAG)
+        }
+
+        // In this case we have an ill-written query, where we can
+        // just guess and come up with a DWIM style logic.
+        else {
+            artist = comp
+            album = comp
+            ambiguousQuery = true
+        }
+    }
+
+    if (ambiguousQuery) {
+        // TODO
+        // We could message or something.
+    }
+
+    return ParsedSearch(artist = artist, album = album, runtime = runtimeStr)
 }
