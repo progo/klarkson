@@ -1,5 +1,6 @@
-package klarksonmainframe
+package klarksonmainframe.ui
 
+import klarksonmainframe.swingDelay
 import java.awt.Color
 import java.awt.Font
 import java.awt.event.*

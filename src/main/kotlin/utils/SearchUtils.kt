@@ -104,11 +104,6 @@ fun buildQuery(ps: ParsedSearch) : ParsedSearchQuery {
         // we look for a range of runtimes
         if (ps.runtime.contains('-')) {
             val (min, max) = ps.runtime.split('-')
-//            try {
-//                val min = Integer.valueOf(minStr)
-//                val max = Integer.valueOf(maxStr)
-//            } catch (e : NumberFormatException) { }
-
             if (!min.isNumba() && !max.isNumba())
                 runtimeQ = null
             else if (!min.isNumba() && max.isNumba())

@@ -1,5 +1,6 @@
 package klarksonmainframe
 
+import klarksonmainframe.ui.SearchBoxActivator
 import klarksonmainframe.utils.median
 import java.awt.*
 import java.awt.dnd.*
