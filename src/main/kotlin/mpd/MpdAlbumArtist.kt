@@ -1,7 +1,4 @@
-package klarksonmainframe
-
-import org.bff.javampd.server.Mpd
-import org.bff.javampd.song.MpdSong
+package klarksonmainframe.mpd
 
 fun stripAlbumArtistTag(s: String) : String {
     val prefix = "AlbumArtist: "

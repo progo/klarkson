@@ -11,7 +11,7 @@ repositories {
     mavenCentral()
 }
 
-val exposedVersion = "0.36.1"
+val exposedVersion = "0.41.1"
 
 dependencies {
     testImplementation(kotlin("test"))
@@ -24,9 +24,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     implementation("org.xerial:sqlite-jdbc:3.36.0.2")
 
-    // 6.2.5 requires Java 11
-    // https://mvnrepository.com/artifact/org.hihn/javampd
-    implementation("org.hihn:javampd:6.1.23")
+    implementation("com.inthebacklog:javampd:7.1.0")
 
     // Coroutine support
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")

@@ -1,6 +1,9 @@
 package klarksonmainframe
 
-import org.bff.javampd.song.MpdSong
+import klarksonmainframe.utils.extractDiscNumber
+import klarksonmainframe.utils.extractTrackNumber
+import klarksonmainframe.utils.extractYear
+import org.bff.javampd.song.MPDSong
 import org.jetbrains.exposed.sql.ResultRow
 import java.security.MessageDigest
 
@@ -85,19 +88,19 @@ data class Song(
             )
         }
 
-        fun make(t : MpdSong) : Song {
+        fun make(t : MPDSong) : Song {
             return Song(
                 artist = t.artistName,
                 album = t.albumName,
                 title = t.title,
                 file = t.file,
                 runtime = t.length,
-                year = t.year.toIntOrNull(),
+                year = extractYear(t.date),
                 albumArtist = MpdServer.getAlbumArtist(t),
                 comment = t.comment,
                 genre = t.genre,
-                discNumber = t.discNumber.toIntOrNull(),
-                trackNumber = t.track
+                discNumber = extractDiscNumber(t.discNumber),
+                trackNumber = extractTrackNumber(t.track)
             )
         }
     }

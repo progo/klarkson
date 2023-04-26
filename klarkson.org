@@ -22,3 +22,8 @@ ovat myös käytettävissäni.
 ** TODO Moduleiden organisointia paketteihin
 
 Näyttää sitten paljon paremmalta.
+
+** TODO Helppo mockattava: Songtest
+
+Mockaa MPD-kutsu pois. Nyt testin ajamiseen menee 300 ms, jos se luku
+saadaan pienemmäksi niin bueno.

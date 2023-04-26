@@ -47,3 +47,27 @@ fun median(nums: Collection<Int>) : Int {
         return ns[ns.size / 2]
     }
 }
+
+/**
+ * Given a date string [s] in arbitrary format, extract a year from there.
+ * The current implementation is interested in any 4-digit number in it.
+ */
+fun extractYear(s: String?) : Int? {
+    s ?: return null
+    val yearRe = "([1-9][0-9]{3})".toRegex()
+    val match = yearRe.find(s) ?: return null
+    return Integer.parseInt(match.groupValues.first())
+}
+
+
+/**
+ * Given a track number such as "17" or "8/10", try to extract
+ * the index from there.
+ */
+fun extractTrackNumber(s: String?) : Int? {
+    s ?: return null
+    val match = Regex("^[0-9]+").find(s.trim()) ?: return null
+    return Integer.parseInt(match.groupValues.first())
+}
+
+val extractDiscNumber = ::extractTrackNumber

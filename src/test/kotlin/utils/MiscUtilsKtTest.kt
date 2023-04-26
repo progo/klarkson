@@ -94,4 +94,36 @@ class MiscUtilsKtTest {
             median(listOf(0, 0, 25, 25))
         )
     }
+
+    @Test
+    fun `#extractTrackNumber`() {
+        assertNull(extractTrackNumber(""))
+        assertNull(extractTrackNumber(null))
+        assertNull(extractTrackNumber("Barbaric barbarossa"))
+
+        assertEquals(10, extractTrackNumber(" 10"))
+        assertEquals(10, extractTrackNumber("10 "))
+        assertEquals(12, extractTrackNumber("12/100"))
+        assertEquals(12, extractTrackNumber("12 100"))
+    }
+
+    @Test
+    fun `#extractDiscNumber`() {
+        assertNull(extractDiscNumber(""))
+        assertNull(extractDiscNumber(null))
+        assertNull(extractDiscNumber("Barbaric barbarossa"))
+
+        assertEquals(2, extractDiscNumber("2"))
+        assertEquals(2, extractDiscNumber("2/2"))
+        assertEquals(2, extractDiscNumber("2(2)"))
+    }
+
+    @Test
+    fun `#extractYear`() {
+        assertNull(extractYear(""))
+        assertNull(extractYear("foobar"))
+
+        assertEquals(2000, extractYear("Sep 1 2000"))
+        assertEquals(2000, extractYear("1-1-2000"))
+    }
 }

@@ -1,19 +1,21 @@
 package klarksonmainframe
 
+import klarksonmainframe.mpd.stripAlbumArtistTag
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.ReceiveChannel
-import org.bff.javampd.server.Mpd
-import org.bff.javampd.song.MpdSong
+import org.bff.javampd.server.MPD
+import org.bff.javampd.song.MPDSong
 import org.bff.javampd.song.SongSearcher
 import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.newSingleThreadContext
 import mu.KotlinLogging
+import org.bff.javampd.playlist.MPDPlaylistSong
 
 private val logger = KotlinLogging.logger {}
 
 
 object MpdServer {
-    private val mpd = Mpd.Builder().build()
+    private val mpd = MPD.builder().build()
 
     /**
      *  Make a producer that streams Album objects as they form from the search.
@@ -97,7 +99,7 @@ object MpdServer {
         // just-added content we find the MpdSong that has the [position].
 
         if (play) {
-            val s : MpdSong = playlist.songList.first { it.position == position }
+            val s : MPDPlaylistSong = playlist.songList.first { it.position == position }
             mpd.player.playSong(s)
         }
 
@@ -115,7 +117,7 @@ object MpdServer {
     /**
      * Get an Album artist information for given [song].
      */
-    fun getAlbumArtist(song: MpdSong) : String {
+    fun getAlbumArtist(song: MPDSong) : String {
         val resp = mpd.commandExecutor.sendCommand("list albumartist file", song.file)
         return stripAlbumArtistTag(resp.firstOrNull().toString())
     }
