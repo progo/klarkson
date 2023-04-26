@@ -1,5 +1,9 @@
 package utils
 
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import klarksonmainframe.MpdServer
 import klarksonmainframe.Song
 import org.bff.javampd.song.MPDSong
 import org.junit.jupiter.api.Assertions.*
@@ -24,7 +28,9 @@ class SongTest {
     }
 
     @Test
-    fun `#Song#make() should be able to create a Song with null discNumber`() {
+    fun `#Song#make() should be able to create a Song with null discNumber plus we test MockK in action`() {
+        mockkObject(MpdServer)
+
         val mpdsong = MPDSong
             .builder()
             .artistName("Artist")
@@ -35,6 +41,11 @@ class SongTest {
             .track("4")
             .file("/foo/bar.flac")
             .build()
+
+        every { MpdServer.getAlbumArtist(mpdsong) } returns "Greatest Albumartist Ever"
         val s = Song.make(mpdsong)
+
+        assertEquals("Greatest Albumartist Ever", s.albumArtist)
+        unmockkObject(MpdServer)
     }
 }

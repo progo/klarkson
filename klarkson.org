@@ -23,7 +23,19 @@ ovat myös käytettävissäni.
 
 Näyttää sitten paljon paremmalta.
 
-** TODO Helppo mockattava: Songtest
+** DONE Helppo mockattava: Songtest
+CLOSED: [2023-04-26 Wed 15:39]
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-04-26 Wed 15:39]
+:END:
 
 Mockaa MPD-kutsu pois. Nyt testin ajamiseen menee 300 ms, jos se luku
 saadaan pienemmäksi niin bueno.
+
+Laitetaan =MockK= testiin.
+
+Mockattu versio saattaa tiedä vaikka toimia? Mutta se kestää nyt
+nelinkertaisesti. Tietysti riippuvuus ulkoisista prosesseista MPD:stä
+on ilman muuta poistettava, joten tämä on parempi kuin alkutilanne.
+
+MockK toimii kivasti.

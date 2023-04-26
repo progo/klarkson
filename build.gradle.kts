@@ -16,6 +16,7 @@ val exposedVersion = "0.41.1"
 dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.0")
+    testImplementation("io.mockk:mockk:1.13.5")
 
     // sqlite and orm
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
