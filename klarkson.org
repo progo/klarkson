@@ -12,9 +12,17 @@ nystyröitä.
 Helpomman testattavuuden nimissä jakakaamme ja refaktoroikaamme koodia
 kanssa. Ja tietenkin TDD-tyyliin.
 
-** TODO parseQuery tekee monta asiaa [/]
-*** TODO parseQuery sekä parsii että luo regexiä
-** TODO JavaMPD:n päivitys uusimpaan
+** TODO parseQuery tekee monta asiaa [1/1]
+*** DONE parseQuery sekä parsii että luo regexiä
+CLOSED: [2023-04-26 Wed 15:43]
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-04-26 Wed 15:43]
+:END:
+** DONE JavaMPD:n päivitys uusimpaan
+CLOSED: [2023-04-26 Wed 15:43]
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-04-26 Wed 15:43]
+:END:
 
 Koska mentiin viimein uusimpaan JVM:ään niin uusimmat JavaMPD-versiot
 ovat myös käytettävissäni.
@@ -22,6 +30,39 @@ ovat myös käytettävissäni.
 ** TODO Moduleiden organisointia paketteihin
 
 Näyttää sitten paljon paremmalta.
+
+** Albumit atomeina: statement
+
+- Hakusana "fatboy slim" pitää tuottaa kokonaisia albumeita tuloksiksi
+  myös silloin kun Fatboy Slimiä on yhden raidan verran jossain
+  kokoelmatyössä.
+- naiivi algoritmi:
+
+  #+begin_src python
+    # ASSUME_SENSIBLE_DIRECTORY_STRUCTURE
+    all_tracks = set()
+    tracks = set(query_mpd(query))
+    for track in tracks:
+        extra_tracks = set(query_mpd(track.album))
+        all_tracks = all_tracks | extra_tracks
+    # we should now have in `all_tracks` only complete albums, but maybe
+    # extra that we can filter out later.
+  #+end_src
+
+*** Refaktorointi, jotta tämä idea on testattavissa
+
+Nyt sidotaan yhteen liikaa asioita: MPD:n queryttäminen, datan
+parsiminen, coroutinekin saattaa olla liikaa.
+
+**** STARTED MPD:n eristäminen pois datankeruusta
+:LOGBOOK:
+- State "STARTED"    from "TODO"       [2023-04-27 Thu 18:46]
+:END:
+
+Strategiamalli käyttöön. Heti kun tämä on tehty, meillä on
+välittömästi huomattavasti testattavampi koodi käsissämme.
+
+**** TODO mockkaa ja aloita testipatteristo albumienkeruulle.
 
 ** DONE Helppo mockattava: Songtest
 CLOSED: [2023-04-26 Wed 15:39]

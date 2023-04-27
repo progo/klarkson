@@ -58,6 +58,12 @@ data class Album(
     }
 }
 
+fun albumOf(song : Song?) =
+    if (song == null) Pair("", "") else Pair(song.albumArtist ?: song.artist, song.album)
+
+fun albumOf(songs: Collection<Song>) = albumOf(songs.firstOrNull())
+
+
 data class Song(
     val artist: String,
     val album: String,

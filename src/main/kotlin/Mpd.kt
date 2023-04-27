@@ -14,60 +14,63 @@ import org.bff.javampd.playlist.MPDPlaylistSong
 private val logger = KotlinLogging.logger {}
 
 
+/**
+ *  Make a producer that streams Album objects as they form from the search.
+ *  Outsources the work to its own thread.
+ *
+ *  When [query] is passed, MPD is asked to search (search type = ANY) by
+ *  the keyword.
+ *
+ *  We stop collecting albums if the count reaches the [limit].
+ */
+fun produceAlbums(
+    source: MPD,
+    query: String? = null,
+    limit : Int = 100)
+: ReceiveChannel<Album> = MainScope().produce(newSingleThreadContext("mpdworker")) {
+    val mpdsongs = source.songSearcher.search(SongSearcher.ScopeType.ANY, query ?: "")
+
+    logger.debug { "MPD has been queried." }
+    var count = limit
+
+    // Low level work here to make grouping efficiently.
+    var songs : MutableList<Song> = ArrayList()
+    for (mpdsong in mpdsongs) {
+        if (AlbumStore.knowFile(mpdsong.file))
+            continue
+        val song = Song.make(mpdsong)
+
+        // New album begins here, send the old one away for processing
+        if (albumOf(song) != albumOf(songs)) {
+            if (songs.isNotEmpty()) {
+                logger.debug { "An album collected, sending... ->" }
+                send(Album.make(songs))
+
+                if (--count == 0) {
+                    logger.debug { "We hit the limit that we can take!" }
+                    return@produce
+                }
+            }
+
+            songs = ArrayList()
+        }
+
+        songs.add(song)
+    }
+
+    // Send the last one.
+    if (songs.isNotEmpty()) {
+        logger.debug { "The last album collected, sending... ->" }
+        send(Album.make(songs))
+    }
+}
+
+
 object MpdServer {
     private val mpd = MPD.builder().build()
 
-    /**
-     *  Make a producer that streams Album objects as they form from the search.
-     *  Outsources the work to its own thread.
-     *
-     *  When [query] is passed, MPD is asked to search (search type = ANY) by
-     *  the keyword.
-     *
-     *  We stop collecting albums if the count reaches the [limit].
-     */
-    fun produceAlbums(query: String? = null, limit : Int = 100) : ReceiveChannel<Album> = MainScope().produce(newSingleThreadContext("mpdworker")) {
-        val mpdsongs = mpd.songSearcher.search(SongSearcher.ScopeType.ANY, query ?: "")
-
-        logger.debug { "MPD has been queried." }
-        var count = limit
-
-        fun albumOf(song : Song?) =
-            if (song == null) Pair("", "") else Pair(song.albumArtist ?: song.artist, song.album)
-        fun albumOf(songs: Collection<Song>) =
-            albumOf(songs.firstOrNull())
-
-        // Low level work here to make grouping efficiently.
-        var songs : MutableList<Song> = ArrayList()
-        for (mpdsong in mpdsongs) {
-            if (AlbumStore.knowFile(mpdsong.file))
-                continue
-            val song = Song.make(mpdsong)
-
-            // New album begins here, send the old one away for processing
-            if (albumOf(song) != albumOf(songs)) {
-                if (songs.isNotEmpty()) {
-                    logger.debug { "An album collected, sending... ->" }
-                    send(Album.make(songs))
-
-                    if (--count == 0) {
-                        logger.debug { "We hit the limit that we can take!" }
-                        return@produce
-                    }
-                }
-
-                songs = ArrayList()
-            }
-
-            songs.add(song)
-        }
-
-        // Send the last one.
-        if (songs.isNotEmpty()) {
-            logger.debug { "The last album collected, sending... ->" }
-            send(Album.make(songs))
-        }
-    }
+    fun produceAlbums(query: String? = null, limit: Int = 100) =
+        produceAlbums(source = mpd, query = query, limit = limit)
 
     /**
      *
