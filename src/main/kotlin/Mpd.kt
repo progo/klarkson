@@ -117,14 +117,6 @@ object MpdServer {
         val traxx = albums.flatMap { ac -> ac.album.songs }
         addTracks(traxx, play=play)
     }
-
-    /**
-     * Get an Album artist information for given [song].
-     */
-    fun getAlbumArtist(song: MPDSong) : String {
-        val resp = mpd.commandExecutor.sendCommand("list albumartist file", song.file)
-        return stripAlbumArtistTag(resp.firstOrNull().toString())
-    }
 }
 
 enum class FileStatus {

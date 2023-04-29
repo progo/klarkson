@@ -28,9 +28,7 @@ class SongTest {
     }
 
     @Test
-    fun `#Song#make() should be able to create a Song with null discNumber plus we test MockK in action`() {
-        mockkObject(MpdServer)
-
+    fun `#Song#make() should be able to create a Song with null discNumber`() {
         val mpdsong = MPDSong
             .builder()
             .artistName("Artist")
@@ -42,10 +40,6 @@ class SongTest {
             .file("/foo/bar.flac")
             .build()
 
-        every { MpdServer.getAlbumArtist(mpdsong) } returns "Greatest Albumartist Ever"
-        val s = Song.make(mpdsong)
-
-        assertEquals("Greatest Albumartist Ever", s.albumArtist)
-        unmockkObject(MpdServer)
+        Song.make(mpdsong)
     }
 }

@@ -102,7 +102,7 @@ data class Song(
                 file = t.file,
                 runtime = t.length,
                 year = extractYear(t.date),
-                albumArtist = MpdServer.getAlbumArtist(t),
+                albumArtist = t.albumArtist,
                 comment = t.comment,
                 genre = t.genre,
                 discNumber = extractDiscNumber(t.discNumber),
