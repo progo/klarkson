@@ -18,6 +18,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.0")
     testImplementation("io.mockk:mockk:1.13.5")
     testImplementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.9.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
 
     // sqlite and orm
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")

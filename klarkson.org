@@ -86,6 +86,8 @@ MockK toimii kivasti.
 Ja se data tulee nätisti yhden =searchAny()=-kutsun kanssa. Eli meidän
 vanha häkki joutaa nyt pois.
 
+** TODO Integraatiotesteille oma tietokanta
+** TODO Kotlin 1.8.20 ulkona
 ** TODO Tietokantaseikkailu (sekoilu)
 
 - Sqlite on aina ollut valintani

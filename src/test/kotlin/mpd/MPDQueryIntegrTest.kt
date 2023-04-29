@@ -1,4 +1,8 @@
 package utils.mpd
+import klarksonmainframe.MpdServer
+import klarksonmainframe.Persist
+import kotlinx.coroutines.channels.toList
+import kotlinx.coroutines.test.runTest
 import org.bff.javampd.server.MPD
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -15,6 +19,22 @@ class MPDQueryIntegrTest {
         assertEquals(
             "Anjunabeats",
             trax.first().albumArtist
+        )
+    }
+
+    @Test
+    fun `Albumproducer will provide us with albumArtist data`() = runTest {
+        Persist.initializeDatabase()
+        val albums = MpdServer
+            .produceAlbums("anjunabeats vol. 2")
+            .toList()
+
+        assertEquals(1, albums.count())
+
+        val traxx = albums.first().songs
+        assertEquals(
+            "Anjunabeats",
+            traxx.first().albumArtist
         )
     }
 }
