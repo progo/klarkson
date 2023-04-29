@@ -83,6 +83,8 @@ MockK toimii kivasti.
 
 ** TODO MPDSong tuntee albumArtistin käsitteen
 
+Ja se data tulee nätisti yhden =searchAny()=-kutsun kanssa. Eli meidän
+vanha häkki joutaa nyt pois.
 
 ** TODO Tietokantaseikkailu (sekoilu)
 

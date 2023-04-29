@@ -15,9 +15,7 @@ interface TrackSource {
  */
 class MPDTrackSource (private val mpd: MPD) : TrackSource {
     override fun searchSongs(query: String): Iterable<MPDSong> {
-        return mpd.songSearcher.search(
-            SongSearcher.ScopeType.ANY,
-            query)
+        return mpd.songSearcher.searchAny(query)
     }
 }
 
