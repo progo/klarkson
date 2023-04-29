@@ -87,7 +87,11 @@ Ja se data tulee nätisti yhden =searchAny()=-kutsun kanssa. Eli meidän
 vanha häkki joutaa nyt pois.
 
 ** TODO Integraatiotesteille oma tietokanta
-** TODO Kotlin 1.8.20 ulkona
+** DONE Kotlin 1.8.20 ulkona
+CLOSED: [2023-04-29 Sat 12:57]
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-04-29 Sat 12:57]
+:END:
 ** TODO Tietokantaseikkailu (sekoilu)
 
 - Sqlite on aina ollut valintani
