@@ -17,6 +17,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.0")
     testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.9.0")
 
     // sqlite and orm
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
@@ -35,6 +36,7 @@ dependencies {
     // Cool, kotlin-idiomatic logging support
     implementation("io.github.microutils:kotlin-logging:2.1.16")
     implementation("ch.qos.logback:logback-classic:1.2.9")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks.test {
@@ -43,4 +45,8 @@ tasks.test {
 
 tasks.withType<KotlinCompile>() {
     kotlinOptions.jvmTarget = "17"
+}
+
+kotlin {
+    jvmToolchain(17)
 }

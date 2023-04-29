@@ -80,3 +80,48 @@ nelinkertaisesti. Tietysti riippuvuus ulkoisista prosesseista MPD:stä
 on ilman muuta poistettava, joten tämä on parempi kuin alkutilanne.
 
 MockK toimii kivasti.
+
+** TODO MPDSong tuntee albumArtistin käsitteen
+
+
+** TODO Tietokantaseikkailu (sekoilu)
+
+- Sqlite on aina ollut valintani
+- Java-maailmassa on h2. Monia faneja.
+- Datomic on nyt ilmainen ja vapaasti käytettävissä
+- Datomic osaa käyttää h2:ta luonnostaan
+  - Mutta tarvitaanko tässä erillinen palvelin kuitenkin?
+- Datomic osaa käyttää mitä tahansa JDBC-rajapintaa, eli myös sqlite
+  on mahdollinen
+
+*** Kotlin ja Datomic
+
+Ei monia lähteitä tälle kombinaatiolle, mutta ei niitä tarvitakaan.
+Kotlin on niin javamainen että Java-Datomic-ohjeet riittävät, tai
+ainakin pitäisi.
+
+*** Datomic: tarvitaanko erillinen palvelinprosessi?
+
+*** Datomic: onko järkevä?
+
+Binäärit ovat jo 460 megatavua yksinään. Ei tämä oikein ole järkevä
+kokeilu työpöytäsovellukseen, jonka on määrä olla edes jollain
+asteella kevyt.
+
+*** Vaihtoehtoja: Embedded NoSQL
+
+Tämä on se taikasana, jolla alkaa löytyä tuloksia.
+
+- Nitrite
+  - Potassium Nitrite :: Kotlin lib
+- Couchbase Lite
+- InfinityDB
+- LevelDB
+- Neo4J: embeddable?
+
+*** Vaihtoehtoja: Embedded SQL
+
+- sqlite
+- h2
+- firebird(?)
+

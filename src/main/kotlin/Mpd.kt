@@ -24,11 +24,11 @@ private val logger = KotlinLogging.logger {}
  *  We stop collecting albums if the count reaches the [limit].
  */
 fun produceAlbums(
-    source: MPD,
+    source: TrackSource,
     query: String? = null,
     limit : Int = 100)
 : ReceiveChannel<Album> = MainScope().produce(newSingleThreadContext("mpdworker")) {
-    val mpdsongs = source.songSearcher.search(SongSearcher.ScopeType.ANY, query ?: "")
+    val mpdsongs = source.searchSongs(query ?: "")
 
     logger.debug { "MPD has been queried." }
     var count = limit
@@ -68,9 +68,10 @@ fun produceAlbums(
 
 object MpdServer {
     private val mpd = MPD.builder().build()
+    private val mpdtracks = MPDTrackSource(mpd)
 
     fun produceAlbums(query: String? = null, limit: Int = 100) =
-        produceAlbums(source = mpd, query = query, limit = limit)
+        produceAlbums(source = mpdtracks, query = query, limit = limit)
 
     /**
      *
