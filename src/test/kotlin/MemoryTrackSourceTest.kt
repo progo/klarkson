@@ -1,72 +1,47 @@
 package utils
-import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
-import klarksonmainframe.MemoryTrackSource
-import org.bff.javampd.song.MPDSong
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import utils.fixtures.TestTracks
 
-// Prepare fixtures from external csv data.
-val songs = csvReader {
-    skipEmptyLine = true
-}.let { rdr ->
-    val dbfile = "fixtures/songdatabase.csv"
-    rdr
-        .readAllWithHeader(
-            {}.javaClass.classLoader.getResource(dbfile)!!
-                .readText())
-        .map { s ->
-            val cleantit = s["Title"]!!.replace(Regex("[^a-zA-Z0-9]"), "")
-            val madeupFilename = "${s["Track"] ?: ""}_$cleantit.wav"
-            MPDSong.builder()
-                .artistName(s["Artist"])
-                .albumName(s["Album"])
-                .track(s["Track"])
-                .discNumber(s["Disc"])
-                .title(s["Title"])
-                .length(Integer.parseInt(s["Runtime"]))
-                .file(s["File"] + madeupFilename)
-                .build()
-    }
-}
-
-
-private val ts = MemoryTrackSource(songs)
 
 class MemoryTrackSourceTest {
     @Test
     fun `see if we have built everything in memory`() {
         assertEquals(
-            songs.count(),
-            ts.searchSongs("").count()
+            59,
+            TestTracks.searchSongs("").count()
         )
     }
 
     @Test
     fun `Test source should #searchSongs properly enough`() {
-        val heisenbergs = ts.searchSongs("Heisenberg")
+        val heisenbergs = TestTracks.searchSongs("Heisenberg")
         assertEquals( 8, heisenbergs.count() ) {
             "should have 8 tracks of Heisenberg"
         }
 
-        val mesopotaniaTracks = ts.searchSongs("Mesopotania")
+        val mesopotaniaTracks = TestTracks.searchSongs("Mesopotania")
         assertEquals(4, mesopotaniaTracks.count()) {
             "should have 4 tracks of Pinku album Mesopotania"
         }
 
-        val pinkus = ts.searchSongs("pinku")
+        val pinkus = TestTracks.searchSongs("pinku")
         assertEquals(16, pinkus.count()) {
             "should have 16 tracks of pinku (case insensitivity should be on)"
         }
 
-        val hipster = ts.searchSongs("hipster nonsense")
+        val hipster = TestTracks.searchSongs("hipster nonsense")
         assertEquals(38, hipster.count()) {
             "should have 38 tracks of Hipster nonsense"
         }
 
-        val searchbydir = ts.searchSongs("Pinku/Panorama")
+        val searchbydir = TestTracks.searchSongs("Pinku/Panorama")
         assertEquals(11, searchbydir.count())
 
-        val noresults = ts.searchSongs("aybabtu")
+        val noresults = TestTracks.searchSongs("aybabtu")
         assertEquals(0, noresults.count())
+
+        val hentai = TestTracks.searchSongs("sapporo hentai")
+        assertEquals("Dunno", hentai.first().albumArtist)
     }
 }

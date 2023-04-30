@@ -54,15 +54,33 @@ Näyttää sitten paljon paremmalta.
 Nyt sidotaan yhteen liikaa asioita: MPD:n queryttäminen, datan
 parsiminen, coroutinekin saattaa olla liikaa.
 
-**** STARTED MPD:n eristäminen pois datankeruusta
+**** DONE MPD:n eristäminen pois datankeruusta
+CLOSED: [2023-04-30 Sun 13:17]
 :LOGBOOK:
+- State "DONE"       from "STARTED"    [2023-04-30 Sun 13:17]
 - State "STARTED"    from "TODO"       [2023-04-27 Thu 18:46]
 :END:
 
 Strategiamalli käyttöön. Heti kun tämä on tehty, meillä on
 välittömästi huomattavasti testattavampi koodi käsissämme.
 
-**** TODO mockkaa ja aloita testipatteristo albumienkeruulle.
+**** DONE mockkaa ja aloita testipatteristo albumienkeruulle.
+CLOSED: [2023-04-30 Sun 13:17]
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-04-30 Sun 13:17]
+:END:
+
+**** DONE Tietokantariippuvuus pois albumien tuottamisesta
+CLOSED: [2023-04-30 Sun 16:50]
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-04-30 Sun 16:50]
+:END:
+
+- Miten voimme tarvita tietokantaa siihen, että ulkoisesta lähteestä
+  tulee auktoritaarinen (single source of truth) data
+- Poistin sen checkin, jonka idea on välttää dupet. Tehdään sama asia
+  toisella (paremmalla) tavalla sitten kun törmätään tähän ongelmaan
+  myöhemmin.
 
 ** DONE Helppo mockattava: Songtest
 CLOSED: [2023-04-26 Wed 15:39]
@@ -81,7 +99,11 @@ on ilman muuta poistettava, joten tämä on parempi kuin alkutilanne.
 
 MockK toimii kivasti.
 
-** TODO MPDSong tuntee albumArtistin käsitteen
+** DONE MPDSong tuntee albumArtistin käsitteen
+CLOSED: [2023-04-29 Sat 13:03]
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2023-04-29 Sat 13:03]
+:END:
 
 Ja se data tulee nätisti yhden =searchAny()=-kutsun kanssa. Eli meidän
 vanha häkki joutaa nyt pois.

@@ -21,7 +21,7 @@ private val logger = KotlinLogging.logger {}
  *  When [query] is passed, MPD is asked to search (search type = ANY) by
  *  the keyword.
  *
- *  We stop collecting albums if the count reaches the [limit].
+ *  We stop collecting albums if the album count reaches the [limit].
  */
 fun produceAlbums(
     source: TrackSource,
@@ -30,14 +30,11 @@ fun produceAlbums(
 : ReceiveChannel<Album> = MainScope().produce(newSingleThreadContext("mpdworker")) {
     val mpdsongs = source.searchSongs(query ?: "")
 
-    logger.debug { "MPD has been queried." }
     var count = limit
 
     // Low level work here to make grouping efficiently.
     var songs : MutableList<Song> = ArrayList()
     for (mpdsong in mpdsongs) {
-        if (AlbumStore.knowFile(mpdsong.file))
-            continue
         val song = Song.make(mpdsong)
 
         // New album begins here, send the old one away for processing

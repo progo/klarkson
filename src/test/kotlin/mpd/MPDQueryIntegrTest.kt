@@ -1,6 +1,5 @@
 package utils.mpd
 import klarksonmainframe.MpdServer
-import klarksonmainframe.Persist
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.test.runTest
 import org.bff.javampd.server.MPD
@@ -24,7 +23,6 @@ class MPDQueryIntegrTest {
 
     @Test
     fun `Albumproducer will provide us with albumArtist data`() = runTest {
-        Persist.initializeDatabase()
         val albums = MpdServer
             .produceAlbums("anjunabeats vol. 2")
             .toList()

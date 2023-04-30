@@ -1,12 +1,7 @@
 package utils
 
-import io.mockk.every
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
-import klarksonmainframe.MpdServer
 import klarksonmainframe.Song
 import org.bff.javampd.song.MPDSong
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class SongTest {
