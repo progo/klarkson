@@ -1,0 +1,25 @@
+* Klarkson: an MPD client written in Kotlin.
+
+** Setup
+
+You need to get a Last.fm API key to get album covers. Currently this
+feature cannot be disabled, so the key is mandatory to run the client.
+
+#+begin_example
+  $ cd src/main/kotlin/
+  $ cp SettingsAndConstants.kt.template SettingsAndConstants.kt
+  $ edit the new file
+#+end_example
+
+** Test coverage and TDD
+
+...is not good. This was started 2 years ago without TDD ideology,
+therefore without good tests. I recently started to dig around and do
+the whole "add tests to a legacy codebase" routine. Fun stuff.
+Kotlin's tools are a pleasure to use.
+
+The tests won't all pass at this time. This is because the code works
+as it was previously specified (by me) to work, but I improved the
+logic by which the core operations should work and I wrote some
+(failing) tests first.
+
