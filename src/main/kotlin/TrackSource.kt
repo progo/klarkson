@@ -7,7 +7,8 @@ import org.bff.javampd.song.SongSearcher
 interface TrackSource {
     // TODO. MPDSong is not an appropriate return here but we will do
     //  it when it becomes a burden.
-    fun searchSongs(query: String) : Iterable<MPDSong>
+    fun searchSongs(query: String): Iterable<MPDSong>
+    fun searchSongs(query: String, scope: SongSearcher.ScopeType) : Iterable<MPDSong>
 }
 
 /**
@@ -15,7 +16,12 @@ interface TrackSource {
  */
 class MPDTrackSource (private val mpd: MPD) : TrackSource {
     override fun searchSongs(query: String): Iterable<MPDSong> {
-        return mpd.songSearcher.searchAny(query)
+        return searchSongs(query, SongSearcher.ScopeType.ANY)
+    }
+    override fun searchSongs(query: String, scope: SongSearcher.ScopeType): Iterable<MPDSong> {
+        return mpd.songSearcher.search(
+            scope ?: SongSearcher.ScopeType.ANY,
+            query)
     }
 }
 
@@ -30,6 +36,10 @@ class MemoryTrackSource (private val traxx: Collection<MPDSong>) : TrackSource {
     }
 
     override fun searchSongs(query: String): Iterable<MPDSong> {
+        return searchSongs(query, SongSearcher.ScopeType.ANY)
+    }
+
+    override fun searchSongs(query: String, scope: SongSearcher.ScopeType): Iterable<MPDSong> {
         return traxx.filter { song ->
             songAsString(song).contains(query, ignoreCase = true) }
     }

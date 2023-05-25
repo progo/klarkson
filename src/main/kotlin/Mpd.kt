@@ -1,6 +1,5 @@
 package klarksonmainframe
 
-import klarksonmainframe.mpd.stripAlbumArtistTag
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import org.bff.javampd.server.MPD
@@ -10,6 +9,7 @@ import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.newSingleThreadContext
 import mu.KotlinLogging
 import org.bff.javampd.playlist.MPDPlaylistSong
+import java.util.TreeSet
 
 private val logger = KotlinLogging.logger {}
 
@@ -29,12 +29,58 @@ fun produceAlbums(
     limit : Int = 100)
 : ReceiveChannel<Album> = MainScope().produce(newSingleThreadContext("mpdworker")) {
     val mpdsongs = source.searchSongs(query ?: "")
-
     var count = limit
+
+    class MPDSongComparator : Comparator<MPDSong> {
+        override fun compare(p0: MPDSong, p1: MPDSong): Int {
+            // Ordering by:
+            // 1. Album
+            // 2. Album artist
+            // 3. Disc number
+            // 4. Track number
+            // -1 : p0 < p1
+            // +1 : p0 > p1
+            // 0  : else
+            if (p0.albumName < p1.albumName)
+                return -1
+            else if (p0.albumName > p1.albumName)
+                return 1
+            if (p0.albumArtist < p1.albumArtist)
+                return -1
+            else if (p0.albumArtist > p1.albumArtist)
+                return 1
+            if (p0.discNumber < p1.discNumber)
+                return -1
+            else if (p0.discNumber > p1.discNumber)
+                return 1
+            if (p0.track < p1.track)
+                return -1
+            else if (p0.track > p1.track)
+                return 1
+            return p0.title.compareTo(p1.title)
+        }
+    }
+
+    // queried albums
+    val albumset = TreeSet<String>()
+    // a full covering of albums that cover the original set of [mpdsongs]
+    val songset = TreeSet<MPDSong>(MPDSongComparator())
+    for (song in mpdsongs) {
+        if (song.albumName in albumset)
+            continue
+        songset.addAll(source.searchSongs(song.albumName, SongSearcher.ScopeType.ALBUM))
+        albumset.add(song.albumName)
+    }
+
+    // Now we have a songset that should cover all tracks of [mpdsongs] in full albums
+    // logger.debug { songset }
+    for (s in songset) {
+        println("${s.track}: ${s.artistName} - ${s.albumName} - ${s.title}")
+    }
 
     // Low level work here to make grouping efficiently.
     var songs : MutableList<Song> = ArrayList()
-    for (mpdsong in mpdsongs) {
+    for (mpdsong in songset) {
         val song = Song.make(mpdsong)
 
         // New album begins here, send the old one away for processing
